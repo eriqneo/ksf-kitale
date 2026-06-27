@@ -448,12 +448,14 @@ export default function Home() {
               </p>
               
               <div className="flex flex-wrap items-center gap-6 sm:gap-12">
-                <button 
-                  onClick={() => window.scrollTo({ top: document.getElementById('who-we-are')?.offsetTop, behavior: 'smooth' })}
-                  className="bg-ksf-white text-ksf-dark-text px-10 sm:px-14 py-4 sm:py-5 rounded-full font-accent font-black tracking-[3px] text-xs sm:text-sm hover:bg-bold-red hover:text-ksf-white transition-all shadow-[0_20px_50px_rgba(0,0,0,0.3)] uppercase active:scale-95"
+                <a 
+                  href={siteSettings?.youtube_url || "https://www.youtube.com/@KsfKitale/streams"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-ksf-white text-ksf-dark-text px-10 sm:px-14 py-4 sm:py-5 rounded-full font-accent font-black tracking-[3px] text-xs sm:text-sm hover:bg-bold-red hover:text-ksf-white transition-all shadow-[0_20px_50px_rgba(0,0,0,0.3)] uppercase active:scale-95 inline-flex items-center justify-center text-center min-h-[48px]"
                 >
-                  Plan Your Visit
-                </button>
+                  Watch Us Live
+                </a>
                 
                 <button 
                   onClick={() => setIsEventsModalOpen(true)}
