@@ -169,7 +169,7 @@ export default function Home() {
   const [isEventsModalOpen, setIsEventsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
-  // Interactive Attendance, RSVP and Admin States
+  // Interactive Attendance and RSVP States
   const [attendance, setAttendance] = useState<Record<number | string, number>>({
     1: 342,
     2: 189,
@@ -179,10 +179,6 @@ export default function Home() {
     6: 64
   });
   const [userVotedEvents, setUserVotedEvents] = useState<any[]>([]);
-  const [isAdminMode, setIsAdminMode] = useState(false);
-  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
-  const [adminError, setAdminError] = useState('');
   const [rsvpLogs, setRsvpLogs] = useState<{ id: string; eventId: number | string; name: string; email: string; timestamp: string }[]>([]);
   
   // Quick RSVP state
@@ -331,17 +327,6 @@ export default function Home() {
     }
   };
 
-  const handleAdminLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (adminPassword === '7777') {
-      setIsAdminMode(true);
-      setShowPasswordPrompt(false);
-      setAdminError('');
-    } else {
-      setAdminError('Invalid Password Pin. (Tip: Use 7777 for preview access)');
-    }
-  };
-
   const executeRsvp = async (anonymous: boolean) => {
     if (!selectedRsvpEvent) return;
     
@@ -411,72 +396,6 @@ export default function Home() {
 
     // 3. Delete from RSVP logs
     const updatedLogs = rsvpLogs.filter(log => !(log.eventId === eventId && (log.email === 'anonymous@ksf.org' || log.name === 'Guest')));
-    setRsvpLogs(updatedLogs);
-    await writeValue('ksf_rsvp_logs', updatedLogs);
-  };
-
-  const handleSimulateVotes = async (eventId: number, count: number) => {
-    const current = attendance[eventId] || 0;
-    const newCount = current + count;
-    const updatedAttendance = { ...attendance, [eventId]: newCount };
-    setAttendance(updatedAttendance);
-    await writeValue('ksf_event_attendance', updatedAttendance);
-
-    // Add dummy logs for simulation
-    const names = ['Michael Gakuo', 'Joy Wambui', 'Emmanuel Simiyu', 'Grace Nekesa', 'Peter Kamau', 'Sarah Jepkosgei', 'Bravin Masika', 'Mercy Cherono', 'Daniel Mwila'];
-    const domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'ksf.org'];
-    const newLogs = [...rsvpLogs];
-    for(let i=0; i<count; i++) {
-      const idx = Math.floor(Math.random() * names.length);
-      const domIdx = Math.floor(Math.random() * domains.length);
-      newLogs.unshift({
-        id: Math.random().toString(36).substring(2, 9),
-        eventId,
-        name: names[idx],
-        email: `${names[idx].toLowerCase().replace(' ', '.')}@${domains[domIdx]}`,
-        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16)
-      });
-    }
-    setRsvpLogs(newLogs);
-    await writeValue('ksf_rsvp_logs', newLogs);
-  };
-
-  const handleResetAttendance = async () => {
-    const base = {
-      1: 342,
-      2: 189,
-      3: 95,
-      4: 112,
-      5: 58,
-      6: 64
-    };
-    setAttendance(base);
-    await writeValue('ksf_event_attendance', base);
-    setUserVotedEvents([]);
-    await writeValue('ksf_voted_events', []);
-    
-    const baseLogs = [
-      { id: '1', eventId: 1, name: 'Pastor Stephen Ngige', email: 'stephen@ksf.org', timestamp: '2026-06-20 09:12' },
-      { id: '2', eventId: 1, name: 'Wangechi Mwangi', email: 'wangechi@gmail.com', timestamp: '2026-06-20 11:45' },
-      { id: '3', eventId: 2, name: 'David Kiprop', email: 'david@gmail.com', timestamp: '2026-06-21 07:30' },
-      { id: '4', eventId: 3, name: 'Abigail Chebet', email: 'abigail@chebet.co.ke', timestamp: '2026-06-21 08:15' },
-      { id: '5', eventId: 2, name: 'Kevin Onyango', email: 'kevin.o@outlook.com', timestamp: '2026-06-21 10:20' }
-    ];
-    setRsvpLogs(baseLogs);
-    await writeValue('ksf_rsvp_logs', baseLogs);
-  };
-
-  const handleDeleteLog = async (logId: string) => {
-    const log = rsvpLogs.find(l => l.id === logId);
-    if (log) {
-      const eventId = log.eventId;
-      const current = attendance[eventId] || 0;
-      const newCount = Math.max(0, current - 1);
-      const updatedAttendance = { ...attendance, [eventId]: newCount };
-      setAttendance(updatedAttendance);
-      await writeValue('ksf_event_attendance', updatedAttendance);
-    }
-    const updatedLogs = rsvpLogs.filter(l => l.id !== logId);
     setRsvpLogs(updatedLogs);
     await writeValue('ksf_rsvp_logs', updatedLogs);
   };
@@ -710,171 +629,8 @@ export default function Home() {
                     );
                   })}
                 </motion.div>
-
-                <button
-                  onClick={() => isAdminMode ? setIsAdminMode(false) : setShowPasswordPrompt(true)}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-accent font-bold text-[10px] sm:text-xs tracking-widest uppercase transition-all duration-300 ${
-                    isAdminMode
-                      ? 'bg-red-600 text-white shadow-md'
-                      : 'bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  {isAdminMode ? (
-                    <>
-                      <Unlock size={14} />
-                      ADMIN SECURE: ON
-                    </>
-                  ) : (
-                    <>
-                      <Lock size={14} />
-                      ADMIN PANEL
-                    </>
-                  )}
-                </button>
               </div>
             </div>
-
-            {/* Admin Console Overlay (Rendered directly in space when toggled) */}
-            <AnimatePresence>
-              {isAdminMode && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="mb-14 p-8 sm:p-10 rounded-[2.5rem] bg-[#001D4A] border border-sky-blue/20 shadow-2xl text-white relative overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-sky-blue/10 rounded-full blur-[80px] pointer-events-none" />
-                  
-                  {/* Title & Stats Grid */}
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-white/10 pb-8 mb-8 gap-4">
-                    <div>
-                      <span className="font-accent text-sky-blue font-black tracking-widest text-xs uppercase">REAL-TIME CHURCH ANALYTICS</span>
-                      <h3 className="text-2xl sm:text-4xl font-headlines font-black mt-2">Attendance Telemetry Console</h3>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                      <button 
-                        onClick={handleResetAttendance}
-                        className="bg-white/10 hover:bg-white/20 border border-white/10 text-white px-5 py-2.5 rounded-full font-accent font-bold text-xs tracking-wider transition-all"
-                      >
-                        Reset Counters
-                      </button>
-                      <button 
-                        onClick={() => setIsAdminMode(false)}
-                        className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-full font-accent font-bold text-xs tracking-wider transition-all"
-                      >
-                        Exit Panel
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                    <div className="bg-white/5 rounded-2xl p-6 border border-white/5">
-                      <p className="text-white/60 font-accent text-xs tracking-wider uppercase">TOTAL GATHERING RSVPs</p>
-                      <p className="font-headlines text-4xl font-black mt-2 text-sky-blue">
-                        {(Object.values(attendance) as number[]).reduce((a, b) => a + b, 0)}
-                      </p>
-                    </div>
-                    <div className="bg-white/5 rounded-2xl p-6 border border-white/5">
-                      <p className="text-white/60 font-accent text-xs tracking-wider uppercase">GUEST BOOK RESERVATIONS</p>
-                      <p className="font-headlines text-4xl font-black mt-2 text-bold-red">
-                        {rsvpLogs.length}
-                      </p>
-                    </div>
-                    <div className="bg-white/5 rounded-2xl p-6 border border-white/5">
-                      <p className="text-white/60 font-accent text-xs tracking-wider uppercase">FASTEST GROWING</p>
-                      <p className="font-accent text-base font-black mt-2 text-emerald-400 uppercase truncate">
-                        {eventsList.find(e => e.id === 1 || e.id === '1' || e.slug === 'sunday-worship-service')?.title || 'Worship Service'}
-                      </p>
-                    </div>
-                    <div className="bg-white/5 rounded-2xl p-6 border border-white/5">
-                      <p className="text-white/60 font-accent text-xs tracking-wider uppercase">STABILITY STATUS</p>
-                      <p className="font-accent text-base font-black mt-2 text-amber-300 uppercase flex items-center gap-2">
-                        <Database size={16} /> INDEXED_DB PERSISTED
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Subtitle columns */}
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    {/* Live Counters with quick-injection controls */}
-                    <div className="lg:col-span-5 bg-white/5 rounded-3xl p-6 sm:p-8 border border-white/5">
-                      <h4 className="font-headlines text-xl font-black mb-6 text-sky-blue flex items-center gap-2">
-                        <TrendingUp size={18} /> Counters & Simulators
-                      </h4>
-                      <div className="space-y-4">
-                        {eventsList.map(event => (
-                          <div key={event.id} className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/5">
-                            <div className="max-w-[180px]">
-                              <p className="font-accent text-xs font-black truncate text-slate-200">{event.title}</p>
-                              <p className="text-[10px] text-white/50 font-bold uppercase mt-1">Cap: {event.id === 1 ? 500 : event.id === 2 ? 300 : event.id === 3 ? 150 : event.id === 4 ? 250 : event.id === 5 ? 100 : 120} Seats</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <span className="font-headlines font-black text-xl text-sky-blue">{attendance[event.id] || 0}</span>
-                              <div className="flex gap-1">
-                                <button 
-                                  onClick={() => handleSimulateVotes(event.id, 1)}
-                                  className="w-8 h-8 rounded-lg bg-sky-blue/20 hover:bg-sky-blue text-white flex items-center justify-center font-accent font-black text-xs transition-all"
-                                  title="Add 1 simulated attendant"
-                                >
-                                  +1
-                                </button>
-                                <button 
-                                  onClick={() => handleSimulateVotes(event.id, 10)}
-                                  className="w-10 h-8 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-white flex items-center justify-center font-accent font-black text-[10px] tracking-tighter transition-all"
-                                  title="Add 10 simulated attendants"
-                                >
-                                  +10
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Log table */}
-                    <div className="lg:col-span-7 bg-white/5 rounded-3xl p-6 sm:p-8 border border-white/5 flex flex-col h-[400px]">
-                      <h4 className="font-headlines text-xl font-black mb-6 text-bold-red flex items-center gap-2">
-                        <Users size={18} /> Active Attendance Log (Database Records)
-                      </h4>
-                      <div className="overflow-y-auto space-y-3 pr-2 flex-grow custom-scrollbar">
-                        {rsvpLogs.length === 0 ? (
-                          <div className="h-full flex flex-col items-center justify-center text-white/40 py-20">
-                            <Users size={48} className="stroke-1 mb-4" />
-                            <p className="font-body text-sm font-bold">No active registrations logged yet.</p>
-                          </div>
-                        ) : (
-                          rsvpLogs.map((log) => {
-                            const relatedEvent = eventsList.find(e => e.id === log.eventId);
-                            return (
-                              <div key={log.id} className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5 gap-4">
-                                <div className="min-w-0 flex-grow">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-accent font-bold text-sm text-slate-100">{log.name}</span>
-                                    {log.email === 'anonymous@ksf.org' && (
-                                      <span className="px-2 py-0.5 rounded-full bg-slate-500/20 text-[8px] text-slate-300 font-accent font-black uppercase tracking-widest">QUICK ATTEND</span>
-                                    )}
-                                  </div>
-                                  <p className="text-[11px] text-white/50 truncate font-semibold mt-0.5">{log.email} • {relatedEvent?.title || 'Unknown Event'}</p>
-                                  <p className="text-[9px] text-white/40 font-mono mt-1">{log.timestamp}</p>
-                                </div>
-                                <button
-                                  onClick={() => handleDeleteLog(log.id)}
-                                  className="w-8 h-8 rounded-lg bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white flex items-center justify-center transition-all shrink-0"
-                                  title="Remove attendee from records"
-                                >
-                                  <Trash2 size={14} />
-                                </button>
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             {/* Events Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -1794,80 +1550,7 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Admin Mode Security Pin Modal overlay */}
-      <AnimatePresence>
-        {showPasswordPrompt && (
-          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => {
-                setShowPasswordPrompt(false);
-                setAdminError('');
-                setAdminPassword('');
-              }}
-              className="absolute inset-0 bg-ksf-dark-text/90 backdrop-blur-md"
-            />
 
-            {/* Content card */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 30 }}
-              className="relative bg-white w-full max-w-sm rounded-[2rem] p-8 sm:p-10 shadow-2xl overflow-hidden text-[#001D4A] z-10"
-            >
-              <div className="text-center mb-6">
-                <div className="w-14 h-14 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-500">
-                  <Lock size={24} />
-                </div>
-                <h3 className="font-headlines text-2xl font-black">Admin Access Required</h3>
-                <p className="text-sm font-body text-[#4B5563] mt-2 font-medium">Please enter your secure 4-digit PIN password.</p>
-              </div>
-
-              <form onSubmit={handleAdminLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <input
-                    type="password"
-                    maxLength={10}
-                    placeholder="Enter Private PIN Pin Code"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    className="w-full text-center px-4 py-3 border-2 border-slate-200 rounded-xl font-mono text-xl tracking-widest focus:outline-none focus:border-primary-blue bg-slate-50"
-                    autoFocus
-                  />
-                  <p className="text-[10px] text-zinc-500 font-bold block text-center mt-1">Hint: Use password pin <span className="text-primary-blue underline">7777</span> for preview access</p>
-                </div>
-
-                {adminError && (
-                  <p className="text-xs font-accent font-extrabold text-red-500 text-center uppercase tracking-wider">{adminError}</p>
-                )}
-
-                <div className="flex gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowPasswordPrompt(false);
-                      setAdminError('');
-                      setAdminPassword('');
-                    }}
-                    className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-accent font-bold text-xs tracking-wider rounded-xl uppercase transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 py-3 bg-primary-blue hover:bg-bold-red text-white font-accent font-bold text-xs tracking-wider rounded-xl uppercase transition-all shadow-md"
-                  >
-                    Authorize
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Modern RSVP Booking/Voting Sheet Modal overlay */}
       <AnimatePresence>
