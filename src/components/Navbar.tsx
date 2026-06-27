@@ -120,19 +120,17 @@ export default function Navbar() {
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ${
           isOpaque 
-            ? 'bg-ksf-white border-b border-ksf-gray-bg/50 py-3 shadow-ksf-scroll' 
-            : 'bg-transparent py-8 sm:py-12'
+            ? 'bg-ksf-white border-b border-ksf-gray-bg/50 py-2.5 shadow-ksf-scroll' 
+            : 'bg-transparent py-4 md:py-6'
         }`}
       >
-        <div className={`container mx-auto flex items-center justify-between transition-all duration-500 ${
-          isOpaque ? 'px-8 md:px-16' : 'px-12 sm:px-20 md:px-24'
-        }`}>
+        <div className="container mx-auto flex items-center justify-between transition-all duration-500 px-6 md:px-12 lg:px-16">
           {/* Logo */}
-          <Link to="/" className="z-10 group flex items-center gap-3">
+          <Link to="/" className="z-10 group flex items-center gap-2.5">
             <div className={`relative rounded-full flex items-center justify-center overflow-hidden border-2 transition-all duration-500 ${
               isOpaque 
-                ? 'w-15 h-15 border-primary-blue/20 bg-ksf-white shadow-md group-hover:border-bold-red' 
-                : 'w-18 h-18 sm:w-20 sm:h-20 border-ksf-white/30 bg-ksf-white/10 backdrop-blur-sm group-hover:border-ksf-white'
+                ? 'w-10 h-10 md:w-12 md:h-12 border-primary-blue/20 bg-ksf-white shadow-md group-hover:border-bold-red' 
+                : 'w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 border-ksf-white/30 bg-ksf-white/10 backdrop-blur-sm group-hover:border-ksf-white'
             }`}>
               <img 
                 src="/KSF LOGO.jpg" 
@@ -147,12 +145,12 @@ export default function Navbar() {
             <div className="flex flex-col">
               <span className={`font-headlines font-black tracking-tight leading-none transition-all duration-500 ${
                 isOpaque 
-                  ? 'text-primary-blue text-lg sm:text-xl' 
-                  : 'text-ksf-white text-xl sm:text-2xl'
+                  ? 'text-primary-blue text-sm sm:text-base md:text-lg' 
+                  : 'text-ksf-white text-base sm:text-lg md:text-xl'
               }`}>
                 Kingdom Seekers
               </span>
-              <span className={`font-accent font-bold tracking-[0.2em] text-[8px] sm:text-[9px] uppercase transition-all duration-500 ${
+              <span className={`font-accent font-bold tracking-[0.2em] text-[7px] sm:text-[8px] md:text-[9px] uppercase transition-all duration-500 ${
                 isOpaque 
                   ? 'text-bold-red' 
                   : 'text-sky-blue'
