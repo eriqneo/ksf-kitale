@@ -296,120 +296,167 @@ export default function BibleTrivia() {
     if (!resultsSummary) return;
     playSound('badge', isMuted);
     
-    const canvas = document.createElement('canvas');
-    canvas.width = 1200;
-    canvas.height = 630;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // 1. Draw solid background with premium gradient
-    const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
-    gradient.addColorStop(0, '#070F1F'); // Deep dark blue
-    gradient.addColorStop(1, '#0D3875'); // KSF Royal Blue
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 1200, 630);
-
-    // 2. Outer gold/white frame borders
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    ctx.lineWidth = 24;
-    ctx.strokeRect(12, 12, 1176, 606);
-
-    ctx.strokeStyle = '#B49121'; // Gold Accent Line
-    ctx.lineWidth = 4;
-    ctx.strokeRect(36, 36, 1128, 558);
-
-    // 3. Decorative subtle vector rings
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
-    ctx.beginPath();
-    ctx.arc(1100, 100, 250, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(100, 530, 350, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 4. Header branding text
-    ctx.fillStyle = '#FFFFFF';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    const logoImg = new Image();
+    logoImg.src = '/KSF LOGO.jpg';
     
-    // Kingdom Seekers Fellowship
-    ctx.font = '900 28px system-ui, sans-serif';
-    ctx.fillText('KINGDOM SEEKERS FELLOWSHIP', 600, 95);
+    const triggerCanvasGeneration = (imgEl: HTMLImageElement | null) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 630;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    // Bible Trivia Challenge
-    ctx.fillStyle = '#3B82F6';
-    ctx.font = 'bold 15px system-ui, sans-serif';
-    ctx.fillText('BIBLE TRIVIA CHALLENGE', 600, 135);
+      // 1. Draw solid background with premium gradient
+      const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+      gradient.addColorStop(0, '#070F1F'); // Deep dark blue
+      gradient.addColorStop(1, '#0D3875'); // KSF Royal Blue
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 1200, 630);
 
-    // Divider line
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(350, 165);
-    ctx.lineTo(850, 165);
-    ctx.stroke();
+      // 2. Outer gold/white frame borders
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 24;
+      ctx.strokeRect(12, 12, 1176, 606);
 
-    // 5. Large Emoji Trophy
-    ctx.font = '85px serif';
-    ctx.fillText('🏆', 600, 235);
+      ctx.strokeStyle = '#B49121'; // Gold Accent Line
+      ctx.lineWidth = 4;
+      ctx.strokeRect(36, 36, 1128, 558);
 
-    // 6. Congratulatory Title
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 44px system-ui, sans-serif';
-    const congratsMsg = resultsSummary.score === 100 ? '👑 Holy Scripture Champion!' : '🌟 Bible Trivia Complete!';
-    ctx.fillText(congratsMsg, 600, 320);
+      // 3. Decorative subtle vector rings
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+      ctx.beginPath();
+      ctx.arc(1100, 100, 250, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(100, 530, 350, 0, Math.PI * 2);
+      ctx.fill();
 
-    // 7. Age Group and Category details
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.font = '500 20px system-ui, sans-serif';
-    ctx.fillText(`Category: ${resultsSummary.category}   •   Age Group: ${selectedAgeGroup || 'General'}`, 600, 375);
+      // 4. Draw Logo and Branding
+      if (imgEl) {
+        // Draw circular clipping path for logo
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(600, 110, 45, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+        
+        // Draw the image centered at (600, 110)
+        ctx.drawImage(imgEl, 555, 65, 90, 90);
+        ctx.restore();
+        
+        // Gold circle around logo
+        ctx.strokeStyle = '#B49121';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(600, 110, 46, 0, Math.PI * 2);
+        ctx.stroke();
 
-    // 8. Stats card container
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
-    ctx.beginPath();
-    if (typeof (ctx as any).roundRect === 'function') {
-      (ctx as any).roundRect(300, 420, 600, 110, 16);
-    } else {
-      ctx.rect(300, 420, 600, 110);
-    }
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+        // Church Name (Shifted down because of logo)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '900 24px system-ui, sans-serif';
+        ctx.fillText('KINGDOM SEEKERS FELLOWSHIP KITALE', 600, 190);
+        
+        ctx.fillStyle = '#3B82F6';
+        ctx.font = 'bold 13px system-ui, sans-serif';
+        ctx.fillText('BIBLE TRIVIA CHALLENGE', 600, 225);
+      } else {
+        // Fallback without logo
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '900 28px system-ui, sans-serif';
+        ctx.fillText('KINGDOM SEEKERS FELLOWSHIP KITALE', 600, 95);
 
-    // 9. Display accuracy score
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 36px system-ui, sans-serif';
-    ctx.fillText(`${resultsSummary.correctCount} / ${resultsSummary.totalCount}`, 450, 465);
+        ctx.fillStyle = '#3B82F6';
+        ctx.font = 'bold 15px system-ui, sans-serif';
+        ctx.fillText('BIBLE TRIVIA CHALLENGE', 600, 135);
+      }
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.font = 'bold 12px system-ui, sans-serif';
-    ctx.fillText('ACCURACY', 450, 505);
+      // Divider line
+      const dividerY = imgEl ? 250 : 165;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(350, dividerY);
+      ctx.lineTo(850, dividerY);
+      ctx.stroke();
 
-    // Display XP
-    ctx.fillStyle = '#B49121';
-    ctx.font = 'bold 36px system-ui, sans-serif';
-    ctx.fillText(`+${resultsSummary.xpGained} XP`, 750, 465);
+      // 5. Large Emoji Trophy
+      const trophyY = imgEl ? 315 : 235;
+      ctx.font = '75px serif';
+      ctx.fillText('🏆', 600, trophyY);
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.font = 'bold 12px system-ui, sans-serif';
-    ctx.fillText('XP EARNED', 750, 505);
+      // 6. Congratulatory Title
+      const titleY = imgEl ? 385 : 320;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 40px system-ui, sans-serif';
+      const congratsMsg = resultsSummary.score === 100 ? '👑 Holy Scripture Champion!' : '🌟 Bible Trivia Complete!';
+      ctx.fillText(congratsMsg, 600, titleY);
 
-    // 10. Scripture verse footer tagline
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.font = 'italic 15px system-ui, sans-serif';
-    ctx.fillText('"Seek ye first the Kingdom of God..." — Matthew 6:33', 600, 565);
+      // 7. Age Group and Category details
+      const detailsY = imgEl ? 430 : 375;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.font = '500 18px system-ui, sans-serif';
+      ctx.fillText(`Category: ${resultsSummary.category}   •   Age Group: ${selectedAgeGroup || 'General'}`, 600, detailsY);
 
-    // Expose download file stream trigger
-    try {
-      const dataUrl = canvas.toDataURL('image/png');
-      const downloadLink = document.createElement('a');
-      downloadLink.download = `KSF_Bible_Trivia_${resultsSummary.category}_Score.png`;
-      downloadLink.href = dataUrl;
-      downloadLink.click();
-    } catch (err) {
-      console.error('Failed to generate results image:', err);
-    }
+      // 8. Stats card container
+      const statsY = imgEl ? 470 : 420;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+      ctx.beginPath();
+      if (typeof (ctx as any).roundRect === 'function') {
+        (ctx as any).roundRect(300, statsY, 600, 90, 12);
+      } else {
+        ctx.rect(300, statsY, 600, 90);
+      }
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // 9. Display accuracy score
+      const statsTextY = statsY + 33;
+      const labelY = statsY + 68;
+      
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 30px system-ui, sans-serif';
+      ctx.fillText(`${resultsSummary.correctCount} / ${resultsSummary.totalCount}`, 450, statsTextY);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.font = 'bold 11px system-ui, sans-serif';
+      ctx.fillText('ACCURACY', 450, labelY);
+
+      // Display XP
+      ctx.fillStyle = '#B49121';
+      ctx.font = 'bold 30px system-ui, sans-serif';
+      ctx.fillText(`+${resultsSummary.xpGained} XP`, 750, statsTextY);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.font = 'bold 11px system-ui, sans-serif';
+      ctx.fillText('XP EARNED', 750, labelY);
+
+      // 10. Scripture verse footer tagline
+      const footerY = imgEl ? 580 : 565;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.font = 'italic 13px system-ui, sans-serif';
+      ctx.fillText('"Seek ye first the Kingdom of God..." — Matthew 6:33', 600, footerY);
+
+      // Expose download file stream trigger
+      try {
+        const dataUrl = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.download = `KSF_Bible_Trivia_${resultsSummary.category}_Score.png`;
+        downloadLink.href = dataUrl;
+        downloadLink.click();
+      } catch (err) {
+        console.error('Failed to generate results image:', err);
+      }
+    };
+
+    // Trigger image loading
+    logoImg.onload = () => triggerCanvasGeneration(logoImg);
+    logoImg.onerror = () => triggerCanvasGeneration(null);
   };
 
   const handleSelectOption = (index: number) => {
@@ -799,8 +846,24 @@ export default function BibleTrivia() {
                   <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-green-400 via-sky-400 to-amber-500" />
                   
                   <div className="text-center space-y-4">
-                    <div className="inline-flex w-20 h-20 bg-yellow-50 border border-yellow-100 rounded-3xl items-center justify-center text-yellow-600 shadow-inner animate-pulse">
-                      <Trophy size={44} className="fill-yellow-600/10" />
+                    <div className="flex justify-center items-center gap-4">
+                      {/* Church Logo Badge */}
+                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-black/10 bg-white shadow-md flex items-center justify-center p-1.5 transform hover:scale-105 transition-transform duration-300">
+                        <img 
+                          src="/KSF LOGO.jpg" 
+                          alt="KSF Logo" 
+                          className="w-full h-full object-cover rounded-xl"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = 'https://placehold.co/150/0d3875/ffffff?text=KSF';
+                          }}
+                        />
+                      </div>
+                      
+                      {/* Trophy Badge */}
+                      <div className="w-20 h-20 bg-yellow-50 border border-yellow-100 rounded-2xl flex items-center justify-center text-yellow-600 shadow-inner animate-bounce-subtle">
+                        <Trophy size={40} className="fill-yellow-600/10" />
+                      </div>
                     </div>
 
                     <div className="space-y-1">
@@ -881,7 +944,7 @@ export default function BibleTrivia() {
                     <div className="flex flex-col sm:flex-row justify-center items-center gap-3 max-w-md mx-auto">
                       <a
                         href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
-                          `I just scored ${resultsSummary.correctCount}/${resultsSummary.totalCount} (${Math.round((resultsSummary.correctCount / resultsSummary.totalCount) * 100)}%) on the Kingdom Seekers Fellowship Bible Trivia Game! 📖🕊️\n\nCategory: ${resultsSummary.category}\nXP Gained: +${resultsSummary.xpGained}\n\nChallenge yourself to test your scripture knowledge: \n${window.location.origin}/bible-trivia`
+                          `I just scored ${resultsSummary.correctCount}/${resultsSummary.totalCount} (${Math.round((resultsSummary.correctCount / resultsSummary.totalCount) * 100)}%) on the Kingdom Seekers Fellowship Kitale Bible Trivia Game! 📖🕊️\n\nCategory: ${resultsSummary.category}\nXP Gained: +${resultsSummary.xpGained}\n\nChallenge yourself to test your scripture knowledge: \n${window.location.origin}/bible-trivia`
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
