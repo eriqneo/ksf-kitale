@@ -147,6 +147,17 @@ export default function Footer() {
             <p className="text-ksf-white/20 text-[10px] uppercase font-accent tracking-widest">
               Made with ❤️ for God&apos;s Glory
             </p>
+            <p className="text-ksf-white/30 text-[11px] font-body">
+              Crafted by{' '}
+              <a 
+                href="https://www.rafikicode.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-sky-blue hover:text-bold-red transition-all duration-300 font-medium"
+              >
+                Code Rafiki Technologies
+              </a>
+            </p>
           </div>
           <div className="flex gap-6">
             {['Privacy Policy', 'Terms of Use'].map((item) => (
