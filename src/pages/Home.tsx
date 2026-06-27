@@ -204,7 +204,8 @@ export default function Home() {
       setIsLoadingData(true);
       try {
         const eventsRes = await pb.collection('events').getFullList({
-          sort: 'sort_order'
+          sort: 'sort_order',
+          requestKey: null
         });
         if (eventsRes.length > 0) {
           const formatted = eventsRes.map(r => ({
@@ -236,7 +237,8 @@ export default function Home() {
 
       try {
         const servicesRes = await pb.collection('services').getFullList({
-          sort: 'sort_order'
+          sort: 'sort_order',
+          requestKey: null
         });
         if (servicesRes.length > 0) {
           const formatted = servicesRes.map(r => ({
@@ -259,7 +261,8 @@ export default function Home() {
 
       try {
         const ministriesRes = await pb.collection('ministries').getFullList({
-          sort: 'sort_order'
+          sort: 'sort_order',
+          requestKey: null
         });
         if (ministriesRes.length > 0) {
           const formatted = ministriesRes.map(r => ({

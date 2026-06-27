@@ -145,7 +145,7 @@ export const PocketBaseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       try {
         // Fetch site settings (single record)
         const settingsRes = await pb.collection('site_settings').getFullList({
-          requestKey: 'global_settings'
+          requestKey: null
         });
         if (settingsRes.length > 0) {
           setSiteSettings(settingsRes[0]);
@@ -154,7 +154,7 @@ export const PocketBaseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         // Fetch all pages meta and structure them as key-value page maps
         const pagesRes = await pb.collection('pages').getFullList({
           sort: 'sort_order',
-          requestKey: 'global_pages'
+          requestKey: null
         });
         
         if (pagesRes.length > 0) {
@@ -168,7 +168,7 @@ export const PocketBaseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         // Fetch all page sections and group by page_slug and section_slug
         const sectionsRes = await pb.collection('page_sections').getFullList({
           sort: 'sort_order',
-          requestKey: 'global_page_sections'
+          requestKey: null
         });
 
         const sectionsMap: Record<string, Record<string, any>> = {};

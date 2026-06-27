@@ -82,7 +82,8 @@ export default function Gallery() {
     async function loadImages() {
       try {
         const records = await pb.collection('gallery_images').getFullList({
-          sort: 'sort_order'
+          sort: 'sort_order',
+          requestKey: null
         });
         if (records.length > 0) {
           setGalleryImages(records);

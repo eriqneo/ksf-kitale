@@ -78,7 +78,8 @@ export default function Sermons() {
     async function loadSermons() {
       try {
         const records = await pb.collection('sermons').getFullList({
-          sort: 'sort_order'
+          sort: 'sort_order',
+          requestKey: null
         });
         if (records.length > 0) {
           setSermonsList(records);

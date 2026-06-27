@@ -201,7 +201,8 @@ export default function PrayerPoints() {
     async function loadCategories() {
       try {
         const records = await pb.collection('prayer_categories').getFullList({
-          sort: 'sort_order'
+          sort: 'sort_order',
+          requestKey: null
         });
         if (records.length > 0) {
           const formatted = records.map(r => ({

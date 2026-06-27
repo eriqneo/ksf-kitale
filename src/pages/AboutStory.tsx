@@ -184,7 +184,8 @@ export default function AboutStory() {
     async function loadAboutData() {
       try {
         const milestonesRecords = await pb.collection('milestones').getFullList({
-          sort: 'sort_order'
+          sort: 'sort_order',
+          requestKey: null
         });
         if (milestonesRecords.length > 0) {
           const formatted = milestonesRecords.map(r => ({
@@ -202,7 +203,8 @@ export default function AboutStory() {
 
       try {
         const valuesRecords = await pb.collection('core_values').getFullList({
-          sort: 'sort_order'
+          sort: 'sort_order',
+          requestKey: null
         });
         if (valuesRecords.length > 0) {
           setCoreValuesList(valuesRecords);
@@ -216,7 +218,8 @@ export default function AboutStory() {
 
       try {
         const leadersRecords = await pb.collection('leadership_team').getFullList({
-          sort: 'sort_order'
+          sort: 'sort_order',
+          requestKey: null
         });
         if (leadersRecords.length > 0) {
           setLeadersList(leadersRecords);
