@@ -193,12 +193,14 @@ export default function Home() {
   const [isRsvpSubmitting, setIsRsvpSubmitting] = useState(false);
 
   // PocketBase dynamic state lists
-  const [eventsList, setEventsList] = useState<any[]>(ALL_EVENTS);
-  const [servicesList, setServicesList] = useState<any[]>(DEFAULT_SERVICES);
-  const [ministriesList, setMinistriesList] = useState<any[]>(DEFAULT_MINISTRIES);
+  const [eventsList, setEventsList] = useState<any[]>([]);
+  const [servicesList, setServicesList] = useState<any[]>([]);
+  const [ministriesList, setMinistriesList] = useState<any[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   React.useEffect(() => {
     async function loadHomeData() {
+      setIsLoadingData(true);
       try {
         const eventsRes = await pb.collection('events').getFullList({
           sort: 'sort_order'
@@ -223,9 +225,12 @@ export default function Home() {
             img: getImageUrl(r, 'image', 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&q=80')
           }));
           setEventsList(formatted);
+        } else {
+          setEventsList(ALL_EVENTS);
         }
       } catch (err) {
-        console.error("Failed to load events from PocketBase:", err);
+        console.error("Failed to load events from PocketBase, using fallbacks:", err);
+        setEventsList(ALL_EVENTS);
       }
 
       try {
@@ -243,9 +248,12 @@ export default function Home() {
             href: r.link || '#'
           }));
           setServicesList(formatted);
+        } else {
+          setServicesList(DEFAULT_SERVICES);
         }
       } catch (err) {
-        console.error("Failed to load services from PocketBase:", err);
+        console.error("Failed to load services from PocketBase, using fallbacks:", err);
+        setServicesList(DEFAULT_SERVICES);
       }
 
       try {
@@ -262,9 +270,14 @@ export default function Home() {
             href: r.link || `/ministries/${r.slug}`
           }));
           setMinistriesList(formatted);
+        } else {
+          setMinistriesList(DEFAULT_MINISTRIES);
         }
       } catch (err) {
-        console.error("Failed to load ministries from PocketBase:", err);
+        console.error("Failed to load ministries from PocketBase, using fallbacks:", err);
+        setMinistriesList(DEFAULT_MINISTRIES);
+      } finally {
+        setIsLoadingData(false);
       }
     }
     loadHomeData();
@@ -855,168 +868,182 @@ export default function Home() {
 
             {/* Events Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <AnimatePresence mode="popLayout">
-                {eventsList
-                  .filter(event => selectedCategory === 'All' || event.tag === selectedCategory)
-                  .slice(0, 3)
-                  .map((event, index) => {
-                    const count = attendance[event.id] || 0;
-                    const capacities: Record<number, number> = { 1: 500, 2: 300, 3: 150, 4: 250, 5: 100, 6: 120 };
-                    const targetCap = capacities[event.id] || 200;
-                    const pct = Math.min(100, Math.round((count / targetCap) * 100));
-                    const alreadyJoined = userVotedEvents.includes(event.id);
-                    
-                    const avatarItems = [
-                      { init: 'SM', bg: 'bg-indigo-500 text-white' },
-                      { init: 'WN', bg: 'bg-emerald-500 text-white' },
-                      { init: 'DK', bg: 'bg-amber-500 text-black' },
-                    ];
+              {isLoadingData ? (
+                // Shivering event skeletons
+                [...Array(3)].map((_, idx) => (
+                  <div key={idx} className="bg-white rounded-[2.5rem] p-8 animate-pulse border border-primary-blue/[0.03] shadow-sm flex flex-col h-[520px]">
+                    <div className="aspect-[16/10] w-full bg-slate-200 rounded-2xl mb-6" />
+                    <div className="h-4 bg-slate-200 w-1/4 rounded-md mb-4" />
+                    <div className="h-7 bg-slate-200 w-3/4 rounded-md mb-4" />
+                    <div className="h-4 bg-slate-200 w-full rounded-md mb-2" />
+                    <div className="h-4 bg-slate-200 w-5/6 rounded-md mb-6" />
+                    <div className="h-14 bg-slate-100 rounded-2xl w-full mt-auto" />
+                  </div>
+                ))
+              ) : (
+                <AnimatePresence mode="popLayout">
+                  {eventsList
+                    .filter(event => selectedCategory === 'All' || event.tag === selectedCategory)
+                    .slice(0, 3)
+                    .map((event, index) => {
+                      const count = attendance[event.id] || 0;
+                      const capacities: Record<number, number> = { 1: 500, 2: 300, 3: 150, 4: 250, 5: 100, 6: 120 };
+                      const targetCap = capacities[event.id] || 200;
+                      const pct = Math.min(100, Math.round((count / targetCap) * 100));
+                      const alreadyJoined = userVotedEvents.includes(event.id);
+                      
+                      const avatarItems = [
+                        { init: 'SM', bg: 'bg-indigo-500 text-white' },
+                        { init: 'WN', bg: 'bg-emerald-500 text-white' },
+                        { init: 'DK', bg: 'bg-amber-500 text-black' },
+                      ];
 
-                    return (
-                      <motion.div
-                        layout
-                        key={event.id}
-                        initial={{ opacity: 0, y: 40, scale: 0.98 }}
-                        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: index * 0.08, type: 'spring', damping: 20 }}
-                        className="bg-white rounded-[2.5rem] overflow-hidden border border-primary-blue/[0.03] shadow-sm hover:shadow-[0_24px_50px_rgba(13,56,117,0.08)] transition-all duration-500 flex flex-col group h-full relative"
-                      >
-                        {/* Top Media Row */}
-                        <div className="relative aspect-[16/10] w-full overflow-hidden">
-                          <img 
-                            src={event.img} 
-                            alt={event.title} 
-                            className="w-full h-full object-cover group-hover:scale-105 filter brightness-95 group-hover:brightness-100 transition-all duration-700 ease-out"
-                            referrerPolicy="no-referrer"
-                          />
-                          {/* Dynamic category tag */}
-                          <div className="absolute top-4 left-4 z-20 backdrop-blur-md bg-white/95 border border-white/20 text-[#001D4A] text-[9px] uppercase font-accent font-black tracking-widest px-4.5 py-1.5 rounded-full shadow-sm">
-                            {event.tag}
-                          </div>
-
-                          {/* Dynamic Attending indicator bubble overlay right-hand corner */}
-                          {alreadyJoined && (
-                            <div className="absolute top-4 right-4 z-20 bg-emerald-500 text-white text-[9px] uppercase font-accent font-black tracking-widest px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
-                              <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
-                              YOU ARE REGISTERED ✓
+                      return (
+                        <motion.div
+                          layout
+                          key={event.id}
+                          initial={{ opacity: 0, y: 40, scale: 0.98 }}
+                          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.6, delay: index * 0.08, type: 'spring', damping: 20 }}
+                          className="bg-white rounded-[2.5rem] overflow-hidden border border-primary-blue/[0.03] shadow-sm hover:shadow-[0_24px_50px_rgba(13,56,117,0.08)] transition-all duration-500 flex flex-col group h-full relative"
+                        >
+                          {/* Top Media Row */}
+                          <div className="relative aspect-[16/10] w-full overflow-hidden">
+                            <img 
+                              src={event.img} 
+                              alt={event.title} 
+                              className="w-full h-full object-cover group-hover:scale-105 filter brightness-95 group-hover:brightness-100 transition-all duration-700 ease-out"
+                              referrerPolicy="no-referrer"
+                            />
+                            {/* Dynamic category tag */}
+                            <div className="absolute top-4 left-4 z-20 backdrop-blur-md bg-white/95 border border-white/20 text-[#001D4A] text-[9px] uppercase font-accent font-black tracking-widest px-4.5 py-1.5 rounded-full shadow-sm">
+                              {event.tag}
                             </div>
-                          )}
-                        </div>
-                        
-                        {/* Event Details */}
-                        <div className="p-8 sm:p-10 flex flex-col flex-grow">
-                          
-                          {/* Interactive Dynamic Calendar & Date Header */}
-                          <div className="flex items-start gap-4 mb-6">
-                            {/* Calendar Box */}
-                            <div className="flex flex-col items-center justify-center bg-gradient-to-br from-primary-blue to-sky-blue text-white rounded-2xl w-14 h-14 sm:w-16 sm:h-16 shrink-0 shadow-lg shadow-primary-blue/10">
-                              <span className="font-accent font-black text-xl sm:text-2xl leading-none mt-1">{event.day}</span>
-                              <span className="font-accent font-extrabold text-[8px] sm:text-[9px] tracking-[2px] uppercase opacity-90 leading-none mt-1 sm:mt-1.5">{event.month}</span>
-                            </div>
-                            
-                            {/* Metadata text */}
-                            <div className="pt-1.5">
-                              <span className="font-accent font-black text-[11px] tracking-wider text-bold-red block uppercase">
-                                {event.date}
-                              </span>
-                              <span className="font-body text-xs text-ksf-dark-text/50 font-bold block mt-0.5">
-                                {event.time}
-                              </span>
-                            </div>
-                          </div>
 
-                          {/* Event Title */}
-                          <h3 className="font-headlines font-black text-xl sm:text-2xl text-ksf-dark-text mb-4 group-hover:text-bold-red transition-colors duration-300 leading-snug">
-                            {event.title}
-                          </h3>
-
-                          {/* Description */}
-                          <p className="text-sm font-body text-[#4B5563] mb-6 line-clamp-2 leading-relaxed opacity-90">
-                            {event.desc}
-                          </p>
-
-                          {/* Live Attendance Growth Indicators */}
-                          <div className="bg-slate-50 border border-slate-100 rounded-3xl p-5 mb-8">
-                            <div className="flex justify-between items-center mb-3">
-                              <div className="flex items-center gap-2">
-                                <span className="relative flex h-2 w-2">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                </span>
-                                <span className="font-accent font-black text-[10px] text-primary-blue tracking-widest uppercase">LIVE ATTENDANCE:</span>
+                            {/* Dynamic Attending indicator bubble overlay right-hand corner */}
+                            {alreadyJoined && (
+                              <div className="absolute top-4 right-4 z-20 bg-emerald-500 text-white text-[9px] uppercase font-accent font-black tracking-widest px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
+                                YOU ARE REGISTERED ✓
                               </div>
-                              <span className="font-headlines font-black text-xs text-primary-blue" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.01)' }}>
-                                {count} seeking ({pct}% filled)
-                              </span>
-                            </div>
-
-                            {/* Slim Premium Progress Bar */}
-                            <div className="w-full h-2 bg-slate-200/70 rounded-full overflow-hidden mb-4">
-                              <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: `${pct}%` }}
-                                transition={{ duration: 1, ease: 'easeOut' }}
-                                className={`h-full rounded-full bg-gradient-to-r ${alreadyJoined ? 'from-emerald-500 to-teal-400' : 'from-primary-blue to-sky-blue'}`}
-                              />
-                            </div>
-
-                            {/* Avatargram and Join Callout */}
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center -space-x-2 overflow-hidden">
-                                {avatarItems.map((avatar, aIndex) => (
-                                  <div 
-                                    key={aIndex} 
-                                    className={`w-7 h-7 rounded-full border-2 border-white ${avatar.bg} flex items-center justify-center font-accent font-black text-[8px] sm:text-[9px] shadow-sm shrink-0`}
-                                  >
-                                    {avatar.init}
-                                  </div>
-                                ))}
-                                <div className="w-11 h-7 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center font-accent font-black text-[8px] sm:text-[9px] text-primary-blue shadow-sm shrink-0">
-                                  +{Math.max(0, count - 3)}
-                                </div>
-                              </div>
-                              <span className="font-sans text-[10px] text-[#6B7280] font-bold">
-                                {alreadyJoined ? '👋 You are on list' : 'Reserve slot now'}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Location & Interactive Button Logic */}
-                          <div className="mt-auto pt-6 border-t border-ksf-gray-bg/60 flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-1.5 text-ksf-dark-text/40 shrink-0">
-                              <MapPin size={13} className="text-[#3B82F6]" />
-                              <span className="font-accent font-bold tracking-widest uppercase text-[8px] max-w-[110px] truncate">{event.location}</span>
-                            </div>
-                            
-                            {alreadyJoined ? (
-                              <button
-                                onClick={() => handleCancelAttendance(event.id)}
-                                className="font-accent font-extrabold text-[9px] tracking-widest text-red-500 hover:text-red-700 uppercase transition-all duration-300 py-2.5 px-4 rounded-xl hover:bg-red-50 border border-transparent hover:border-red-100 shrink-0"
-                              >
-                                CANCEL RSVP
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  setSelectedRsvpEvent(event);
-                                  setRsvpSuccess(false);
-                                  setRsvpName('');
-                                  setRsvpEmail('');
-                                }}
-                                className="bg-primary-blue hover:bg-bold-red text-white font-accent font-black text-[9px] tracking-widest uppercase py-2.5 px-5 rounded-full flex items-center gap-1 hover:shadow-lg hover:shadow-bold-red/10 animate-bounce-subtle shrink-0 transition-all duration-300 active:scale-95"
-                              >
-                                <ThumbsUp size={11} />
-                                I WILL ATTEND
-                              </button>
                             )}
                           </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-              </AnimatePresence>
+                          
+                          {/* Event Details */}
+                          <div className="p-8 sm:p-10 flex flex-col flex-grow">
+                            
+                            {/* Interactive Dynamic Calendar & Date Header */}
+                            <div className="flex items-start gap-4 mb-6">
+                              {/* Calendar Box */}
+                              <div className="flex flex-col items-center justify-center bg-gradient-to-br from-primary-blue to-sky-blue text-white rounded-2xl w-14 h-14 sm:w-16 sm:h-16 shrink-0 shadow-lg shadow-primary-blue/10">
+                                <span className="font-accent font-black text-xl sm:text-2xl leading-none mt-1">{event.day}</span>
+                                <span className="font-accent font-extrabold text-[8px] sm:text-[9px] tracking-[2px] uppercase opacity-90 leading-none mt-1 sm:mt-1.5">{event.month}</span>
+                              </div>
+                              
+                              {/* Metadata text */}
+                              <div className="pt-1.5">
+                                <span className="font-accent font-black text-[11px] tracking-wider text-bold-red block uppercase">
+                                  {event.date}
+                                </span>
+                                <span className="font-body text-xs text-ksf-dark-text/50 font-bold block mt-0.5">
+                                  {event.time}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Event Title */}
+                            <h3 className="font-headlines font-black text-xl sm:text-2xl text-ksf-dark-text mb-4 group-hover:text-bold-red transition-colors duration-300 leading-snug">
+                              {event.title}
+                            </h3>
+
+                            {/* Description */}
+                            <p className="text-sm font-body text-[#4B5563] mb-6 line-clamp-2 leading-relaxed opacity-90">
+                              {event.desc}
+                            </p>
+
+                            {/* Live Attendance Growth Indicators */}
+                            <div className="bg-slate-50 border border-slate-100 rounded-3xl p-5 mb-8">
+                              <div className="flex justify-between items-center mb-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                  </span>
+                                  <span className="font-accent font-black text-[10px] text-primary-blue tracking-widest uppercase">LIVE ATTENDANCE:</span>
+                                </div>
+                                <span className="font-headlines font-black text-xs text-primary-blue" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.01)' }}>
+                                  {count} seeking ({pct}% filled)
+                                </span>
+                              </div>
+
+                              {/* Slim Premium Progress Bar */}
+                              <div className="w-full h-2 bg-slate-200/70 rounded-full overflow-hidden mb-4">
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${pct}%` }}
+                                  transition={{ duration: 1, ease: 'easeOut' }}
+                                  className={`h-full rounded-full bg-gradient-to-r ${alreadyJoined ? 'from-emerald-500 to-teal-400' : 'from-primary-blue to-sky-blue'}`}
+                                />
+                              </div>
+
+                              {/* Avatargram and Join Callout */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center -space-x-2 overflow-hidden">
+                                  {avatarItems.map((avatar, aIndex) => (
+                                    <div 
+                                      key={aIndex} 
+                                      className={`w-7 h-7 rounded-full border-2 border-white ${avatar.bg} flex items-center justify-center font-accent font-black text-[8px] sm:text-[9px] shadow-sm shrink-0`}
+                                    >
+                                      {avatar.init}
+                                    </div>
+                                  ))}
+                                  <div className="w-11 h-7 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center font-accent font-black text-[8px] sm:text-[9px] text-primary-blue shadow-sm shrink-0">
+                                    +{Math.max(0, count - 3)}
+                                  </div>
+                                </div>
+                                <span className="font-sans text-[10px] text-[#6B7280] font-bold">
+                                  {alreadyJoined ? '👋 You are on list' : 'Reserve slot now'}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Location & Interactive Button Logic */}
+                            <div className="mt-auto pt-6 border-t border-ksf-gray-bg/60 flex items-center justify-between gap-4">
+                              <div className="flex items-center gap-1.5 text-ksf-dark-text/40 shrink-0">
+                                <MapPin size={13} className="text-[#3B82F6]" />
+                                <span className="font-accent font-bold tracking-widest uppercase text-[8px] max-w-[110px] truncate">{event.location}</span>
+                              </div>
+                              
+                              {alreadyJoined ? (
+                                <button
+                                  onClick={() => handleCancelAttendance(event.id)}
+                                  className="font-accent font-extrabold text-[9px] tracking-widest text-red-500 hover:text-red-700 uppercase transition-all duration-300 py-2.5 px-4 rounded-xl hover:bg-red-50 border border-transparent hover:border-red-100 shrink-0"
+                                >
+                                  CANCEL RSVP
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    setSelectedRsvpEvent(event);
+                                    setRsvpSuccess(false);
+                                    setRsvpName('');
+                                    setRsvpEmail('');
+                                  }}
+                                  className="bg-primary-blue hover:bg-bold-red text-white font-accent font-black text-[9px] tracking-widest uppercase py-2.5 px-5 rounded-full flex items-center gap-1 hover:shadow-lg hover:shadow-bold-red/10 animate-bounce-subtle shrink-0 transition-all duration-300 active:scale-95"
+                                >
+                                  <ThumbsUp size={11} />
+                                  I WILL ATTEND
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                </AnimatePresence>
+              )}
             </div>
 
             {/* Bottom Link with a gorgeous button card container */}
@@ -1067,38 +1094,50 @@ export default function Home() {
 
             {/* Ministries Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              {ministriesList.map((ministry, index) => (
-                <Link 
-                  key={ministry.id} 
-                  to={ministry.href}
-                  className="block h-full group"
-                >
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: index * 0.05 }}
-                    className="bg-ksf-white rounded-ksf-lg p-6 sm:p-8 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 flex flex-col items-start h-full"
+              {isLoadingData ? (
+                // Shivering ministries skeletons
+                [...Array(3)].map((_, idx) => (
+                  <div key={idx} className="bg-ksf-white rounded-ksf-lg p-6 sm:p-8 animate-pulse flex flex-col items-start h-[280px] border border-primary-blue/[0.01]">
+                    <div className="w-14 h-14 bg-slate-200 rounded-ksf-md mb-6" />
+                    <div className="h-6 bg-slate-200 w-2/3 rounded-md mb-4" />
+                    <div className="h-4 bg-slate-200 w-full rounded-md mb-2" />
+                    <div className="h-4 bg-slate-200 w-5/6 rounded-md mb-2" />
+                  </div>
+                ))
+              ) : (
+                ministriesList.map((ministry, index) => (
+                  <Link 
+                    key={ministry.id} 
+                    to={ministry.href}
+                    className="block h-full group"
                   >
-                    <motion.div 
-                      whileHover={{ scale: 1.1, rotate: [0, -10, 10, 0] }}
-                      className="text-3xl sm:text-4xl mb-6 flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-ksf-gray-bg rounded-ksf-md transition-transform duration-300"
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: index * 0.05 }}
+                      className="bg-ksf-white rounded-ksf-lg p-6 sm:p-8 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 flex flex-col items-start h-full"
                     >
-                      {ministry.icon}
+                      <motion.div 
+                        whileHover={{ scale: 1.1, rotate: [0, -10, 10, 0] }}
+                        className="text-3xl sm:text-4xl mb-6 flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-ksf-gray-bg rounded-ksf-md transition-transform duration-300"
+                      >
+                        {ministry.icon}
+                      </motion.div>
+                      <h3 className="text-primary-blue font-accent font-black text-lg sm:text-xl mb-4 group-hover:text-sky-blue transition-colors tracking-tight uppercase">
+                        {ministry.title}
+                      </h3>
+                      <p className="text-[#6B7280] font-body text-sm sm:text-base leading-relaxed mb-8 flex-grow opacity-90">
+                        {ministry.desc}
+                      </p>
+                      <div className="text-sky-blue font-accent font-bold text-[10px] sm:text-xs tracking-widest flex items-center gap-2 group/link min-h-[44px] group-hover:text-bold-red transition-colors">
+                        LEARN MORE
+                        <ChevronRight size={16} className="group-hover/link:translate-x-1 transition-transform" />
+                      </div>
                     </motion.div>
-                    <h3 className="text-primary-blue font-accent font-black text-lg sm:text-xl mb-4 group-hover:text-sky-blue transition-colors tracking-tight uppercase">
-                      {ministry.title}
-                    </h3>
-                    <p className="text-[#6B7280] font-body text-sm sm:text-base leading-relaxed mb-8 flex-grow opacity-90">
-                      {ministry.desc}
-                    </p>
-                    <div className="text-sky-blue font-accent font-bold text-[10px] sm:text-xs tracking-widest flex items-center gap-2 group/link min-h-[44px] group-hover:text-bold-red transition-colors">
-                      LEARN MORE
-                      <ChevronRight size={16} className="group-hover/link:translate-x-1 transition-transform" />
-                    </div>
-                  </motion.div>
-                </Link>
-              ))}
+                  </Link>
+                ))
+              )}
             </div>
           </div>
         </section>
@@ -1146,50 +1185,57 @@ export default function Home() {
 
             {/* Services Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              {servicesList.map((service, index) => (
-                <Link 
-                  key={index} 
-                  to={service.href}
-                  className="block h-full group"
-                >
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                    className="relative h-[300px] sm:h-[350px] rounded-ksf-lg overflow-hidden shadow-xl"
+              {isLoadingData ? (
+                // Shivering services skeletons
+                [...Array(3)].map((_, idx) => (
+                  <div key={idx} className="h-[300px] sm:h-[350px] bg-slate-100 rounded-ksf-lg animate-pulse border border-primary-blue/[0.01]" />
+                ))
+              ) : (
+                servicesList.map((service, index) => (
+                  <Link 
+                    key={index} 
+                    to={service.href}
+                    className="block h-full group"
                   >
-                    {/* Card Background Image */}
-                    <img 
-                      src={service.img} 
-                      alt={service.title} 
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 brightness-75"
-                      referrerPolicy="no-referrer"
-                    />
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-primary-blue via-primary-blue/40 to-transparent group-hover:from-primary-blue/90 transition-colors duration-500" />
-                    
-                    {/* Card Content */}
-                    <div className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-end text-ksf-white transform group-hover:-translate-y-2 transition-transform duration-500">
-                      <span className="text-2xl sm:text-3xl mb-4 transform group-hover:scale-110 transition-transform origin-left">{service.icon}</span>
-                      <div className="mb-2">
-                         <span className="font-accent font-black text-[10px] tracking-widest text-sky-blue uppercase">{service.time}</span>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: index * 0.1 }}
+                      className="relative h-[300px] sm:h-[350px] rounded-ksf-lg overflow-hidden shadow-xl"
+                    >
+                      {/* Card Background Image */}
+                      <img 
+                        src={service.img} 
+                        alt={service.title} 
+                        loading="lazy"
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 brightness-75"
+                        referrerPolicy="no-referrer"
+                      />
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-primary-blue via-primary-blue/40 to-transparent group-hover:from-primary-blue/90 transition-colors duration-500" />
+                      
+                      {/* Card Content */}
+                      <div className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-end text-ksf-white transform group-hover:-translate-y-2 transition-transform duration-500">
+                        <span className="text-2xl sm:text-3xl mb-4 transform group-hover:scale-110 transition-transform origin-left">{service.icon}</span>
+                        <div className="mb-2">
+                           <span className="font-accent font-black text-[10px] tracking-widest text-sky-blue uppercase">{service.time}</span>
+                        </div>
+                        <h3 className="font-headlines font-black text-xl sm:text-2xl mb-3 tracking-tight leading-tight">
+                          {service.title}
+                        </h3>
+                        <p className="font-body text-xs sm:text-sm text-ksf-white font-medium mb-6 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-500 line-clamp-2">
+                          {service.desc}
+                        </p>
+                        <div className="flex items-center gap-2 font-accent font-bold text-[10px] sm:text-xs tracking-widest group/btn min-h-[44px] group-hover:text-bold-red transition-colors">
+                          CONNECT NOW
+                          <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                        </div>
                       </div>
-                      <h3 className="font-headlines font-black text-xl sm:text-2xl mb-3 tracking-tight leading-tight">
-                        {service.title}
-                      </h3>
-                      <p className="font-body text-xs sm:text-sm text-ksf-white font-medium mb-6 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-500 line-clamp-2">
-                        {service.desc}
-                      </p>
-                      <div className="flex items-center gap-2 font-accent font-bold text-[10px] sm:text-xs tracking-widest group/btn min-h-[44px] group-hover:text-bold-red transition-colors">
-                        CONNECT NOW
-                        <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
-                  </motion.div>
-                </Link>
-              ))}
+                    </motion.div>
+                  </Link>
+                ))
+              )}
             </div>
           </div>
         </section>
