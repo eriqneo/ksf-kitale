@@ -292,6 +292,126 @@ export default function BibleTrivia() {
     setIsPlaying(true);
   };
 
+  const downloadResultsImage = () => {
+    if (!resultsSummary) return;
+    playSound('badge', isMuted);
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 630;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // 1. Draw solid background with premium gradient
+    const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+    gradient.addColorStop(0, '#070F1F'); // Deep dark blue
+    gradient.addColorStop(1, '#0D3875'); // KSF Royal Blue
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 1200, 630);
+
+    // 2. Outer gold/white frame borders
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 24;
+    ctx.strokeRect(12, 12, 1176, 606);
+
+    ctx.strokeStyle = '#B49121'; // Gold Accent Line
+    ctx.lineWidth = 4;
+    ctx.strokeRect(36, 36, 1128, 558);
+
+    // 3. Decorative subtle vector rings
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+    ctx.beginPath();
+    ctx.arc(1100, 100, 250, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(100, 530, 350, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 4. Header branding text
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // Kingdom Seekers Fellowship
+    ctx.font = '900 28px system-ui, sans-serif';
+    ctx.fillText('KINGDOM SEEKERS FELLOWSHIP', 600, 95);
+
+    // Bible Trivia Challenge
+    ctx.fillStyle = '#3B82F6';
+    ctx.font = 'bold 15px system-ui, sans-serif';
+    ctx.fillText('BIBLE TRIVIA CHALLENGE', 600, 135);
+
+    // Divider line
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(350, 165);
+    ctx.lineTo(850, 165);
+    ctx.stroke();
+
+    // 5. Large Emoji Trophy
+    ctx.font = '85px serif';
+    ctx.fillText('🏆', 600, 235);
+
+    // 6. Congratulatory Title
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 44px system-ui, sans-serif';
+    const congratsMsg = resultsSummary.score === 100 ? '👑 Holy Scripture Champion!' : '🌟 Bible Trivia Complete!';
+    ctx.fillText(congratsMsg, 600, 320);
+
+    // 7. Age Group and Category details
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = '500 20px system-ui, sans-serif';
+    ctx.fillText(`Category: ${resultsSummary.category}   •   Age Group: ${selectedAgeGroup || 'General'}`, 600, 375);
+
+    // 8. Stats card container
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+    ctx.beginPath();
+    if (typeof (ctx as any).roundRect === 'function') {
+      (ctx as any).roundRect(300, 420, 600, 110, 16);
+    } else {
+      ctx.rect(300, 420, 600, 110);
+    }
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // 9. Display accuracy score
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 36px system-ui, sans-serif';
+    ctx.fillText(`${resultsSummary.correctCount} / ${resultsSummary.totalCount}`, 450, 465);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.font = 'bold 12px system-ui, sans-serif';
+    ctx.fillText('ACCURACY', 450, 505);
+
+    // Display XP
+    ctx.fillStyle = '#B49121';
+    ctx.font = 'bold 36px system-ui, sans-serif';
+    ctx.fillText(`+${resultsSummary.xpGained} XP`, 750, 465);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.font = 'bold 12px system-ui, sans-serif';
+    ctx.fillText('XP EARNED', 750, 505);
+
+    // 10. Scripture verse footer tagline
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.font = 'italic 15px system-ui, sans-serif';
+    ctx.fillText('"Seek ye first the Kingdom of God..." — Matthew 6:33', 600, 565);
+
+    // Expose download file stream trigger
+    try {
+      const dataUrl = canvas.toDataURL('image/png');
+      const downloadLink = document.createElement('a');
+      downloadLink.download = `KSF_Bible_Trivia_${resultsSummary.category}_Score.png`;
+      downloadLink.href = dataUrl;
+      downloadLink.click();
+    } catch (err) {
+      console.error('Failed to generate results image:', err);
+    }
+  };
+
   const handleSelectOption = (index: number) => {
     if (isAnswerLocked) return;
     setSelectedOption(index);
@@ -750,6 +870,38 @@ export default function BibleTrivia() {
                           </>
                         )}
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Share Results Block */}
+                  <div className="mt-8 pt-8 border-t border-black/[0.04] text-center space-y-4">
+                    <p className="font-accent font-extrabold text-[10px] tracking-widest text-[#0D3875] uppercase">
+                      Share your results & invite others to study!
+                    </p>
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-3 max-w-md mx-auto">
+                      <a
+                        href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                          `I just scored ${resultsSummary.correctCount}/${resultsSummary.totalCount} (${Math.round((resultsSummary.correctCount / resultsSummary.totalCount) * 100)}%) on the Kingdom Seekers Fellowship Bible Trivia Game! 📖🕊️\n\nCategory: ${resultsSummary.category}\nXP Gained: +${resultsSummary.xpGained}\n\nChallenge yourself to test your scripture knowledge: \n${window.location.origin}/bible-trivia`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full sm:w-auto bg-[#25D366] text-white hover:bg-[#20ba5a] py-3.5 px-6 rounded-2xl font-accent font-black text-[11px] tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#25D366]/20 hover:scale-[1.02] active:scale-95 text-center min-h-[44px]"
+                      >
+                        <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.66.986 3.284 1.503 4.936 1.504 5.428 0 9.845-4.414 9.848-9.842.002-2.63-1.02-5.101-2.877-6.958C16.698 2.001 14.229.98 11.602.98c-5.437 0-9.853 4.414-9.855 9.843-.001 1.902.501 3.758 1.455 5.378L2.176 21.81l5.808-1.522c-1.63 1.096-1.332 1.332-1.337.866zM15.86 11.66c-.27-.135-1.597-.788-1.846-.879-.25-.09-.43-.135-.61.135-.18.27-.697.879-.855 1.059-.158.18-.315.202-.585.067-.27-.135-1.137-.419-2.167-1.338-.802-.716-1.344-1.601-1.501-1.871-.158-.27-.017-.416.118-.55.121-.12.27-.315.405-.472.135-.158.18-.27.27-.45.09-.18.045-.337-.022-.472-.067-.135-.61-1.472-.835-2.015-.22-.527-.46-.456-.63-.464-.162-.008-.347-.01-.532-.01-.185 0-.485.07-.74.348-.255.278-.975.953-.975 2.325s1.0 2.705 1.14 2.895c.14.19 1.968 3.006 4.767 4.212.665.287 1.185.459 1.59.589.67.213 1.28.183 1.76.112.537-.08 1.597-.653 1.822-1.282.225-.63.225-1.17.157-1.282-.068-.112-.25-.202-.52-.337z"/>
+                        </svg>
+                        <span>Share results</span>
+                      </a>
+                      
+                      <button
+                        onClick={downloadResultsImage}
+                        className="w-full sm:w-auto bg-[#0D3875] text-white hover:bg-sky-blue py-3.5 px-6 rounded-2xl font-accent font-black text-[11px] tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-primary-blue/20 hover:scale-[1.02] active:scale-95 text-center min-h-[44px]"
+                      >
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                        <span>Download Card</span>
+                      </button>
                     </div>
                   </div>
 
