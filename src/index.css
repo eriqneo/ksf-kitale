@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-primary-blue: #0D3875;
+  --color-bold-red: #CC1B1B;
+  --color-sky-blue: #1A52A8;
+  --color-ksf-white: #FFFFFF;
+  --color-ksf-gray-bg: #F5F7FA;
+  --color-ksf-drawer-bg: #2D2D2D;
+  --color-ksf-footer-bg: #070F1F;
+  --color-deep-navy: #0A1F44;
+  --color-ksf-dark-text: #1A1A2E;
+
+  /* Typography */
+  --font-headlines: "Playfair Display", serif;
+  --font-body: "Lato", sans-serif;
+  --font-accent: "Montserrat", sans-serif;
+
+  /* Spacing */
+  --spacing-ksf-xs: 0.25rem;
+  --spacing-ksf-sm: 0.5rem;
+  --spacing-ksf-md: 1rem;
+  --spacing-ksf-lg: 2rem;
+  --spacing-ksf-xl: 4rem;
+
+  /* Shadows */
+  --shadow-ksf-nav: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-ksf-scroll: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+
+  /* Radius */
+  --radius-ksf-sm: 0.375rem;
+  --radius-ksf-md: 0.5rem;
+  --radius-ksf-lg: 0.75rem;
+  --radius-ksf-full: 9999px;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-body);
+    background-color: var(--color-ksf-gray-bg);
+    color: var(--color-ksf-dark-text);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-headlines);
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .nav-blur {
+    backdrop-filter: blur(8px);
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .hero-overlay {
+    background: linear-gradient(135deg, rgba(13, 56, 117, 0.85) 0%, rgba(13, 56, 117, 0.6) 100%);
+  }
+
+  .pulse-glow {
+    box-shadow: 0 0 0 0 rgba(204, 27, 27, 0.7);
+    animation: pulse-red 2s infinite;
+  }
+
+  @keyframes pulse-red {
+    0% {
+      box-shadow: 0 0 0 0 rgba(204, 27, 27, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 15px rgba(204, 27, 27, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(204, 27, 27, 0);
+    }
+  }
+
+  .animate-marquee {
+    display: flex;
+    white-space: nowrap;
+    animation: marquee 30s linear infinite;
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+}

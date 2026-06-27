@@ -1,0 +1,8 @@
+{
+  "name": "Kingdom Seekers Fellowship",
+  "description": "A world-class church website foundation for KSF, featuring an elegant design system, a dynamic church gallery, responsive navigation, and an interactive kids Sunday School Bible Trivia platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
