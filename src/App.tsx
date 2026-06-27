@@ -39,32 +39,36 @@ function MainAppContent() {
       <AnimatePresence mode="wait">
         {showPreloader && <Preloader key="preloader" />}
       </AnimatePresence>
-      <ScrollToTop />
-      <BackToTop />
-      <div className="min-h-screen bg-ksf-gray-bg font-body selection:bg-primary-blue/10 selection:text-primary-blue flex flex-col">
-        <Navbar />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/sermons" element={<Sermons />} />
-            <Route path="/about/story" element={<AboutStory />} />
-            <Route path="/im-new" element={<ImNew />} />
-            <Route path="/ministries/kids" element={<MinistriesKids />} />
-            <Route path="/ministries/youth" element={<MinistriesYouth />} />
-            <Route path="/ministries/women" element={<MinistriesWomen />} />
-            <Route path="/ministries/men" element={<MinistriesMen />} />
-            <Route path="/ministries/home-fellowship" element={<MinistriesHomeFellowship />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/bible-trivia" element={<BibleTrivia />} />
-            <Route path="/give" element={<Give />} />
-            <Route path="/live" element={<Live />} />
-            <Route path="/prayer-points" element={<PrayerPoints />} />
-            {/* Fallback to Home */}
-            <Route path="*" element={<Home />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+      {!isLoadingSettings && (
+        <>
+          <ScrollToTop />
+          <BackToTop />
+          <div className="min-h-screen bg-ksf-gray-bg font-body selection:bg-primary-blue/10 selection:text-primary-blue flex flex-col">
+            <Navbar />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/sermons" element={<Sermons />} />
+                <Route path="/about/story" element={<AboutStory />} />
+                <Route path="/im-new" element={<ImNew />} />
+                <Route path="/ministries/kids" element={<MinistriesKids />} />
+                <Route path="/ministries/youth" element={<MinistriesYouth />} />
+                <Route path="/ministries/women" element={<MinistriesWomen />} />
+                <Route path="/ministries/men" element={<MinistriesMen />} />
+                <Route path="/ministries/home-fellowship" element={<MinistriesHomeFellowship />} />
+                <Route path="/gallery" element={<Gallery />} />
+                <Route path="/bible-trivia" element={<BibleTrivia />} />
+                <Route path="/give" element={<Give />} />
+                <Route path="/live" element={<Live />} />
+                <Route path="/prayer-points" element={<PrayerPoints />} />
+                {/* Fallback to Home */}
+                <Route path="*" element={<Home />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </>
+      )}
     </>
   );
 }
