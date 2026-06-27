@@ -152,7 +152,8 @@ const DEFAULT_SERVICES = [
 ];
 
 export default function Home() {
-  const { siteSettings, pages, getImageUrl } = usePocketBase();
+  const { siteSettings, pages, pageSections, getImageUrl } = usePocketBase();
+  const whoWeAreSection = pageSections['home']?.['who-we-are'];
   const page = pages['home'];
 
   // Form State
@@ -565,7 +566,7 @@ export default function Home() {
                   {/* Main Large Image */}
                   <div className="absolute top-0 right-0 w-[85%] h-[80%] z-0">
                     <img 
-                      src="https://picsum.photos/seed/ksf-worship/800/800" 
+                      src={getImageUrl(whoWeAreSection, 'image_1', 'https://picsum.photos/seed/ksf-worship/800/800')} 
                       alt="Energetic worship at Kingdom Seekers Fellowship" 
                       loading="lazy"
                       className="w-full h-full object-cover rounded-ksf-lg shadow-2xl grayscale hover:grayscale-0 transition-all duration-700"
@@ -575,7 +576,7 @@ export default function Home() {
                   {/* Secondary Image with Border */}
                   <div className="absolute bottom-0 left-0 w-[60%] h-[55%] z-10 p-2 bg-ksf-white rounded-ksf-lg shadow-xl translate-x-4 -translate-y-4">
                     <img 
-                      src="https://picsum.photos/seed/ksf-community/600/600" 
+                      src={getImageUrl(whoWeAreSection, 'image_2', 'https://picsum.photos/seed/ksf-community/600/600')} 
                       alt="Community members connecting after service" 
                       loading="lazy"
                       className="w-full h-full object-cover rounded-ksf-md border-4 border-primary-blue"
@@ -585,7 +586,7 @@ export default function Home() {
                   {/* Third Small Image */}
                   <div className="absolute top-1/2 left-0 w-[35%] h-[35%] z-20 -translate-y-1/2 -translate-x-4 hidden md:block">
                     <img 
-                      src="https://picsum.photos/seed/ksf-prayer/400/400" 
+                      src={getImageUrl(whoWeAreSection, 'image_3', 'https://picsum.photos/seed/ksf-prayer/400/400')} 
                       alt="Group prayer circle" 
                       loading="lazy"
                       className="w-full h-full object-cover rounded-ksf-md shadow-lg"
@@ -604,16 +605,22 @@ export default function Home() {
                 className="order-2 lg:order-1"
               >
                 <span className="font-accent uppercase text-sky-blue tracking-[0.3em] text-[10px] sm:text-xs font-black mb-6 block">
-                  WHO WE ARE
+                  {whoWeAreSection?.subtitle || 'WHO WE ARE'}
                 </span>
                 <h2 className="text-primary-blue text-3xl sm:text-4xl lg:text-5xl font-headlines font-black leading-[1.1] mb-8 tracking-tight">
-                  We exist to seek God's Kingdom and transform communities through His love.
+                  {whoWeAreSection?.title || "We exist to seek God's Kingdom and transform communities through His love."}
                 </h2>
                 <p className="text-[#444444] font-body text-base sm:text-lg leading-[1.8] mb-10 max-w-xl opacity-85">
-                  At Kingdom Seekers Fellowship, everything we do is rooted in Matthew 6:33 — 
-                  <span className="italic font-bold text-ksf-dark-text"> "Seek ye first the Kingdom of God."</span> 
-                  Whether you are new to faith or looking to deepen your walk with Jesus, there is a place for you here. 
-                  We are a family committed to spiritual growth and service through our Home Fellowship network.
+                  {whoWeAreSection?.description ? (
+                    whoWeAreSection.description
+                  ) : (
+                    <>
+                      At Kingdom Seekers Fellowship, everything we do is rooted in Matthew 6:33 — 
+                      <span className="italic font-bold text-ksf-dark-text"> "Seek ye first the Kingdom of God."</span> 
+                      Whether you are new to faith or looking to deepen your walk with Jesus, there is a place for you here. 
+                      We are a family committed to spiritual growth and service through our Home Fellowship network.
+                    </>
+                  )}
                 </p>
                 <Link 
                   to="/about/story"

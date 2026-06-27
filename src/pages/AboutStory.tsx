@@ -146,8 +146,33 @@ const FALLBACK_LEADERS = [
 ];
 
 export default function AboutStory() {
-  const { pages, getImageUrl } = usePocketBase();
+  const { pages, pageSections, getImageUrl } = usePocketBase();
   const page = pages['about-story'];
+  const sections = pageSections['about-story'] || {};
+
+  const jesusSection = sections['its-all-about-jesus'];
+  const commissionSection = sections['the-great-commission'];
+  const strategiesSection = sections['our-strategies'];
+
+  const vision = commissionSection?.content_json?.vision || {
+    title: "Vision",
+    text: "God has called KSF to connect all people to a growing relationship with Jesus. We will do this by reaching every corner of Kitale and beyond — making disciples who make disciples."
+  };
+  const mission = commissionSection?.content_json?.mission || {
+    title: "Mission",
+    text: "We exist to seek God's Kingdom first and to transform our communities through worship, discipleship, fellowship, and service."
+  };
+
+  const strategiesList = strategiesSection?.content_json && Array.isArray(strategiesSection.content_json)
+    ? strategiesSection.content_json
+    : [
+        { title: "Worship Gatherings", id: "worship" },
+        { title: "Connect Groups", id: "groups" },
+        { title: "Families", id: "families" },
+        { title: "Equip Pathways", id: "equip" },
+        { title: "Global Missions", id: "missions" },
+        { title: "Local Outreach", id: "outreach" }
+      ];
 
   const [activeBelief, setActiveBelief] = useState<number | null>(null);
   const [activeEra, setActiveEra] = useState<string>('all');
@@ -284,20 +309,24 @@ export default function AboutStory() {
               className="flex flex-col items-start"
             >
               <span className="font-accent font-bold text-sky-blue text-[0.8rem] tracking-[3px] uppercase mb-4">
-                About Us
+                {jesusSection?.subtitle || 'About Us'}
               </span>
               <h2 className="text-primary-blue font-headlines font-black text-4xl sm:text-5xl mb-6 leading-[1.1] tracking-tight">
-                It's All About Jesus
+                {jesusSection?.title || "It's All About Jesus"}
               </h2>
               <p className="text-ksf-dark-text font-body font-bold text-[1.15rem] mb-6 leading-relaxed">
-                Our story started when Jesus rose from the grave. This is the reason for our existence today.
+                {jesusSection?.description ? (
+                  jesusSection.description.split('\n')[0]
+                ) : (
+                  "Our story started when Jesus rose from the grave. This is the reason for our existence today."
+                )}
               </p>
               <p className="text-[#555555] font-body text-[1rem] leading-[1.8] mb-10 opacity-90">
-                Everything we do at Kingdom Seekers Fellowship is anchored in the resurrection 
-                of Jesus Christ — His life, death, and victory over the grave. That truth is 
-                what compels us to gather, to serve, and to reach our city and the world with 
-                the Gospel. Whether you're exploring faith for the first time or deepening your 
-                walk, you belong here.
+                {jesusSection?.description ? (
+                  jesusSection.description.split('\n').slice(1).join('\n') || jesusSection.description
+                ) : (
+                  "Everything we do at Kingdom Seekers Fellowship is anchored in the resurrection of Jesus Christ — His life, death, and victory over the grave. That truth is what compels us to gather, to serve, and to reach our city and the world with the Gospel. Whether you're exploring faith for the first time or deepening your walk, you belong here."
+                )}
               </p>
               <a 
                 href="#beliefs"
@@ -321,7 +350,7 @@ export default function AboutStory() {
                   className="w-[70%] aspect-[2/3] rounded-[16px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] ml-auto"
                 >
                   <img 
-                    src="https://picsum.photos/400/600?seed=ksf-large" 
+                    src={getImageUrl(jesusSection, 'image_1', 'https://picsum.photos/400/600?seed=ksf-large')} 
                     alt="Community Life" 
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
@@ -333,7 +362,7 @@ export default function AboutStory() {
                   className="absolute bottom-[10%] left-0 w-[55%] aspect-square rounded-[12px] overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.12)] border-4 border-white"
                 >
                   <img 
-                    src="https://picsum.photos/300/300?seed=ksf-medium" 
+                    src={getImageUrl(jesusSection, 'image_2', 'https://picsum.photos/300/300?seed=ksf-medium')} 
                     alt="Worship Moment" 
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
@@ -345,7 +374,7 @@ export default function AboutStory() {
                   className="absolute bottom-0 right-[-10%] w-[45%] aspect-square rounded-[12px] overflow-hidden shadow-[0_10px_25px_rgba(0,0,0,0.1)] border-4 border-white rotate-3"
                 >
                   <img 
-                    src="https://picsum.photos/250/250?seed=ksf-small" 
+                    src={getImageUrl(jesusSection, 'image_3', 'https://picsum.photos/250/250?seed=ksf-small')} 
                     alt="Small Group" 
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
@@ -369,7 +398,7 @@ export default function AboutStory() {
               viewport={{ once: true }}
               className="text-ksf-white font-headlines font-black text-4xl sm:text-5xl mb-8 tracking-tight"
             >
-              The Great Commission
+              {commissionSection?.title || "The Great Commission"}
             </motion.h2>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -378,10 +407,7 @@ export default function AboutStory() {
               transition={{ delay: 0.2 }}
               className="text-[#AAAAAA] font-body italic text-[0.95rem] leading-relaxed"
             >
-              "Go, therefore, and make disciples of all nations, baptizing them in the name 
-              of the Father and of the Son and of the Holy Spirit, teaching them to observe 
-              everything I have commanded you. And remember, I am with you always, to the 
-              end of the age." — Matthew 28:19–20
+              {commissionSection?.description || '"Go, therefore, and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit, teaching them to observe everything I have commanded you. And remember, I am with you always, to the end of the age." — Matthew 28:19–20'}
             </motion.p>
           </div>
 
@@ -399,11 +425,9 @@ export default function AboutStory() {
               <div className="bg-sky-blue/10 w-16 h-16 rounded-full flex items-center justify-center mb-8 text-sky-blue">
                 <Compass size={32} />
               </div>
-              <h3 className="text-ksf-dark-text font-accent font-bold text-[1.2rem] mb-4">Vision</h3>
+              <h3 className="text-ksf-dark-text font-accent font-bold text-[1.2rem] mb-4">{vision.title}</h3>
               <p className="text-[#555555] font-body text-[0.95rem] leading-[1.7]">
-                God has called KSF to connect all people to a growing relationship with Jesus. 
-                We will do this by reaching every corner of Kitale and beyond — making 
-                disciples who make disciples.
+                {vision.text}
               </p>
             </motion.div>
 
@@ -420,10 +444,9 @@ export default function AboutStory() {
               <div className="bg-sky-blue/10 w-16 h-16 rounded-full flex items-center justify-center mb-8 text-sky-blue">
                 <Target size={32} />
               </div>
-              <h3 className="text-ksf-dark-text font-accent font-bold text-[1.2rem] mb-4">Mission</h3>
+              <h3 className="text-ksf-dark-text font-accent font-bold text-[1.2rem] mb-4">{mission.title}</h3>
               <p className="text-[#555555] font-body text-[0.95rem] leading-[1.7]">
-                We exist to seek God's Kingdom first and to transform our communities 
-                through worship, discipleship, fellowship, and service.
+                {mission.text}
               </p>
             </motion.div>
           </div>
@@ -448,14 +471,13 @@ export default function AboutStory() {
             
             <div className="relative z-10">
               <span className="font-accent font-black text-bold-red text-[0.8rem] tracking-[4px] uppercase mb-4 block">
-                OUR STRATEGIES
+                {strategiesSection?.subtitle || 'OUR STRATEGIES'}
               </span>
               <h2 className="text-primary-blue font-headlines font-black text-4xl sm:text-5xl mb-6 tracking-tight">
-                How We Live It Out
+                {strategiesSection?.title || "How We Live It Out"}
               </h2>
               <p className="text-ksf-dark-text font-body text-[1.1rem] max-w-[600px] mx-auto leading-relaxed opacity-70">
-                Based on scripture, we have developed five pillars to carry out the mission 
-                God has given us.
+                {strategiesSection?.description || "Based on scripture, we have developed pillars to carry out the mission God has given us."}
               </p>
             </div>
           </div>
@@ -468,24 +490,15 @@ export default function AboutStory() {
             className="max-w-[680px] mx-auto mb-24 bg-ksf-gray-bg p-6 sm:p-8 rounded-[8px] border-l-4 border-bold-red"
           >
             <p className="text-[#666666] font-body italic text-[0.95rem] leading-[1.8]">
-              "They devoted themselves to the apostles' teaching, to the fellowship, to the 
-              breaking of bread, and to prayer... Every day the Lord added to their number 
-              those who were being saved." — Acts 2:42–47
+              "They devoted themselves to the apostles' teaching, to the fellowship, to the breaking of bread, and to prayer... Every day the Lord added to their number those who were being saved." — Acts 2:42–47
             </p>
           </motion.div>
 
           {/* Strategy Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              { title: "Worship Gatherings", id: "worship" },
-              { title: "Connect Groups", id: "groups" },
-              { title: "Families", id: "families" },
-              { title: "Equip Pathways", id: "equip" },
-              { title: "Global Missions", id: "missions" },
-              { title: "Local Outreach", id: "outreach" }
-            ].map((strategy, idx) => (
+            {strategiesList.map((strategy: any, idx: number) => (
               <motion.div
-                key={strategy.id}
+                key={strategy.id || idx}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -494,7 +507,7 @@ export default function AboutStory() {
                 className="group relative aspect-[3/2] rounded-[12px] overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-300"
               >
                 <img 
-                  src={`https://picsum.photos/seed/ksf-strat-${idx}/400/270`} 
+                  src={strategy.image || `https://picsum.photos/seed/ksf-strat-${idx}/400/270`} 
                   alt={strategy.title} 
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   referrerPolicy="no-referrer"

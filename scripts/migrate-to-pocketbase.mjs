@@ -916,6 +916,116 @@ const prayerCategoriesData = [
   }
 ];
 
+const pageSectionsData = [
+  {
+    page_slug: 'home',
+    section_slug: 'who-we-are',
+    title: "We exist to seek God's Kingdom and transform communities through His love.",
+    subtitle: 'WHO WE ARE',
+    description: 'At Kingdom Seekers Fellowship, everything we do is rooted in Matthew 6:33 — "Seek ye first the Kingdom of God." Whether you are new to faith or looking to deepen your walk with Jesus, there is a place for you here. We are a family committed to spiritual growth and service through our Home Fellowship network.',
+    image_url_1: 'https://picsum.photos/seed/ksf-worship/800/800',
+    image_url_2: 'https://picsum.photos/seed/ksf-community/600/600',
+    image_url_3: 'https://picsum.photos/seed/ksf-prayer/400/400',
+    content_json: {},
+    sort_order: 1
+  },
+  {
+    page_slug: 'im-new',
+    section_slug: 'youre-invited',
+    title: "Join Us Every Sunday at 8:00, 10:30, & 5:00pm.",
+    subtitle: "You're Invited",
+    description: "If it's your first time at KSF, you are our honoured guest. We understand that showing up somewhere new can feel nerve-wracking, so here's a little more about what Kingdom Seekers Fellowship is like and what you can expect when you walk through our doors.",
+    image_url_1: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600&q=80',
+    image_url_2: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=80',
+    content_json: {},
+    sort_order: 1
+  },
+  {
+    page_slug: 'im-new',
+    section_slug: 'what-to-expect',
+    title: "What To Expect",
+    subtitle: "",
+    description: "We understand that showing up somewhere new for the first time can be nerve-wracking, so here's what to expect when you visit Kingdom Seekers Fellowship.",
+    content_json: [
+      {"icon": "Smile", "title": "Smiling Faces", "text": "From the car park to the auditorium, our guest services team is here to guide you, answer any questions, and make you feel right at home."},
+      {"icon": "Users", "title": "Personal Connection", "text": "Stop by our First-Time Guest area. We have a gift for you and a team of people ready to show you around and help you take your first steps."},
+      {"icon": "Music", "title": "Engaging Worship", "text": "There will be a live worship team that leads us into the presence of God with powerful songs as we exalt Jesus together every Sunday."},
+      {"icon": "BookOpen", "title": "Biblical Teaching", "text": "Most weekends our Lead Pastor preaches from the Word of God — practical, biblically grounded messages with real-life application you can walk with all week."},
+      {"icon": "Heart", "title": "KSF Kids", "text": "We always say KSF Kids is where your kids would rather be! We do more than teach Bible stories — we teach children the Gospel in a way they can understand and love.", "hasAction": true},
+      {"icon": "Shirt", "title": "Casual Dress", "text": "We are not a dress-up kind of crowd! Most people wear casual attire, but you are always welcome to wear whatever makes you comfortable. Just come as you are."}
+    ],
+    sort_order: 2
+  },
+  {
+    page_slug: 'im-new',
+    section_slug: 'next-steps',
+    title: "Taking Your Next Steps",
+    subtitle: "YOUR JOURNEY CONTINUES",
+    description: "Discipleship is a lifetime journey. Wherever you are on your walk with God, we are here to help you take the next step.",
+    content_json: [
+      {"id": "baptism", "step": "STEP 1: PUBLIC DECLARATION", "title": "Water Baptism", "text": "Water baptism is an outward declaration of an inward decision. It symbolizes our identification with the death, burial, and resurrection of Jesus Christ. If you have repented of your sins and placed your trust in Jesus, water baptism is your direct next step!", "icon": "Droplets", "actionText": "Register for Baptism", "actionHref": "/#contact"},
+      {"id": "membership", "step": "STEP 2: FIND YOUR FAMILY", "title": "Church Membership", "text": "We believe that every believer should be committed to a local church family. Our Covenant Membership class covers our church vision, history, leadership structure, and core beliefs, outlining what it looks like to partner together for the Gospel at KSF.", "icon": "UserPlus", "actionText": "Join Membership Class", "actionHref": "/#contact"},
+      {"id": "volunteering", "step": "STEP 3: ACTIVE SERVICE", "title": "Serve on a Team", "text": "God has uniquely gifted you with talents, passions, and strengths to serve others. When you volunteer on one of our ministry teams (such as KSF Kids, Worship, Media, or Guest Services), you are actively building the local church and demonstrating Jesus' love.", "icon": "HeartHandshake", "actionText": "Start Volunteering", "actionHref": "/#contact"},
+      {"id": "discipleship", "step": "STEP 4: DEEPEN YOUR WALK", "title": "Discipleship Pathway", "text": "Our Discipleship pathway exists to guide you into spiritual maturity. Through structured Bible training, foundational doctrine classes, and active participation in our Home Fellowship networks, you will learn to feed on the Word of God and mentor others.", "icon": "Compass", "actionText": "Explore Home Fellowships", "actionHref": "/ministries/home-fellowship"}
+    ],
+    sort_order: 3
+  },
+  {
+    page_slug: 'about-story',
+    section_slug: 'its-all-about-jesus',
+    title: "It's All About Jesus",
+    subtitle: "WHAT WE BELIEVE",
+    description: "We believe in one God, Creator of all things, infinitely perfect and eternally existing in three persons: Father, Son, and Holy Spirit. Everything we preach and stand for centers on the person and work of Jesus Christ.",
+    content_json: [
+      {"title": "Who is Jesus?", "text": "We believe that Jesus Christ is true God and true man, having been conceived of the Holy Spirit and born of the Virgin Mary. He died on the cross, a sacrifice for our sins according to the Scriptures. Further, He arose bodily from the dead, ascended into heaven, where, at the right hand of the Majesty on High, He now is our High Priest and Advocate."},
+      {"title": "What is the Gospel?", "text": "The Gospel is the good news that God is reconciling the world to Himself through Jesus Christ. It is a message of grace, forgiveness, and new life available to anyone who repents and believes. Salvation is a gift of God, received by faith apart from human works or merit."},
+      {"title": "The Word of God", "text": "We believe the Bible (both Old and New Testaments) to be the inspired, the only infallible, authoritative Word of God. It is our final authority for faith and life, and we are committed to preaching and teaching it faithfully, without compromise."}
+    ],
+    sort_order: 1
+  },
+  {
+    page_slug: 'about-story',
+    section_slug: 'the-great-commission',
+    title: "Our Vision, Mission, & Focus",
+    subtitle: "THE GREAT COMMISSION",
+    description: "We are called to make disciples and multiply churches, following the commandment of Jesus to go into all the world and preach the Gospel.",
+    content_json: {
+      "vision": {
+        "title": "Our Vision",
+        "text": "To be a vibrant, Christ-centered family that seeks the Kingdom of God first, raising generations of passionate believers who manifest the presence, power, and love of Jesus Christ to transform our city and beyond."
+      },
+      "mission": {
+        "title": "Our Mission",
+        "text": "To proclaim the Gospel of Jesus Christ, make mature disciples through biblical teaching, foster genuine covenant relationships in Home Fellowships, and equip every believer for active service and multiplication."
+      },
+      "focus": {
+        "title": "Our Focus Areas",
+        "list": [
+          "Encountering God in deep personal and corporate worship.",
+          "Discipleship pathways that lead to spiritual maturity.",
+          "Community transformation through outreach and service.",
+          "Multiplying healthy home fellowships and church plants."
+        ]
+      }
+    },
+    sort_order: 2
+  },
+  {
+    page_slug: 'about-story',
+    section_slug: 'our-strategies',
+    title: "How We Move Forward",
+    subtitle: "OUR STRATEGIES",
+    description: "Our blueprint for ministry centers on four key pillars that help us connect with God, build covenant relationships, grow in maturity, and impact the world.",
+    content_json: [
+      {"icon": "Flame", "title": "Preach", "text": "Preaching the uncompromised Word of God with power, leading to repentance, salvation, and deliverance.", "stat": "100%", "statText": "Biblical Truth"},
+      {"icon": "BookOpen", "title": "Discipleship", "text": "Structured classes and mentorship pathways that build deep scriptural foundations for every believer.", "stat": "4+", "statText": "Pathway Levels"},
+      {"icon": "Users", "title": "Fellowship", "text": "Building close-knit covenant groups in our Home Fellowship regions to ensure no one walks alone.", "stat": "40+", "statText": "Active Circles"},
+      {"icon": "Globe", "title": "Outreaches", "text": "Proactively carrying the love and power of Jesus into streets, schools, prisons, and hospitals.", "stat": "10k+", "statText": "Lives Reached"}
+    ],
+    sort_order: 3
+  }
+];
+
 // --- COLLECTION SCHEMAS CONFIGURATIONS ---
 
 const collections = [
@@ -957,6 +1067,27 @@ const collections = [
       { name: 'hero_heading', type: 'text' },
       { name: 'hero_description', type: 'text' },
       { name: 'hero_image', type: 'file', maxSelect: 1, maxSize: 5242880 },
+      { name: 'sort_order', type: 'number' }
+    ],
+    listRule: '',
+    viewRule: '',
+    createRule: null,
+    updateRule: null,
+    deleteRule: null
+  },
+  {
+    name: 'page_sections',
+    type: 'base',
+    fields: [
+      { name: 'page_slug', type: 'text', required: true },
+      { name: 'section_slug', type: 'text', required: true },
+      { name: 'title', type: 'text' },
+      { name: 'subtitle', type: 'text' },
+      { name: 'description', type: 'text' },
+      { name: 'image_1', type: 'file', maxSelect: 1, maxSize: 5242880 },
+      { name: 'image_2', type: 'file', maxSelect: 1, maxSize: 5242880 },
+      { name: 'image_3', type: 'file', maxSelect: 1, maxSize: 5242880 },
+      { name: 'content_json', type: 'json' },
       { name: 'sort_order', type: 'number' }
     ],
     listRule: '',
@@ -1310,6 +1441,26 @@ async function runMigration() {
       await retryRequest(() => pb.collection('prayer_categories').create(cat));
     }
     console.log(`   ✓ Seeded ${prayerCategoriesData.length} records in prayer_categories.`);
+
+    // Seed page_sections
+    console.log(" - Seeding page_sections...");
+    for (const section of pageSectionsData) {
+      const payload = { ...section };
+      if (section.image_url_1) {
+        payload.image_1 = await downloadAsFile(section.image_url_1, `${section.page_slug}_${section.section_slug}_img1`);
+        delete payload.image_url_1;
+      }
+      if (section.image_url_2) {
+        payload.image_2 = await downloadAsFile(section.image_url_2, `${section.page_slug}_${section.section_slug}_img2`);
+        delete payload.image_url_2;
+      }
+      if (section.image_url_3) {
+        payload.image_3 = await downloadAsFile(section.image_url_3, `${section.page_slug}_${section.section_slug}_img3`);
+        delete payload.image_url_3;
+      }
+      await retryRequest(() => pb.collection('page_sections').create(payload));
+    }
+    console.log(`   ✓ Seeded ${pageSectionsData.length} records in page_sections.`);
 
     console.log("\n[5/5] Migration successfully completed!");
     console.log("=========================================");

@@ -127,6 +127,7 @@ const DEFAULT_PAGES: Record<string, any> = {
 interface PocketBaseContextType {
   siteSettings: typeof DEFAULT_SITE_SETTINGS;
   pages: Record<string, any>;
+  pageSections: Record<string, Record<string, any>>;
   isLoadingSettings: boolean;
   getImageUrl: (record: any, fieldName: string, fallback: string) => string;
 }
@@ -136,6 +137,7 @@ const PocketBaseContext = createContext<PocketBaseContextType | null>(null);
 export const PocketBaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [siteSettings, setSiteSettings] = useState<any>(DEFAULT_SITE_SETTINGS);
   const [pages, setPages] = useState<Record<string, any>>(DEFAULT_PAGES);
+  const [pageSections, setPageSections] = useState<Record<string, Record<string, any>>>({});
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
   useEffect(() => {
@@ -162,6 +164,23 @@ export const PocketBaseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           });
           setPages(prev => ({ ...prev, ...pagesMap }));
         }
+
+        // Fetch all page sections and group by page_slug and section_slug
+        const sectionsRes = await pb.collection('page_sections').getFullList({
+          sort: 'sort_order',
+          requestKey: 'global_page_sections'
+        });
+
+        const sectionsMap: Record<string, Record<string, any>> = {};
+        sectionsRes.forEach((sectionRecord: any) => {
+          const pageKey = sectionRecord.page_slug;
+          const sectionKey = sectionRecord.section_slug;
+          if (!sectionsMap[pageKey]) {
+            sectionsMap[pageKey] = {};
+          }
+          sectionsMap[pageKey][sectionKey] = sectionRecord;
+        });
+        setPageSections(sectionsMap);
       } catch (err) {
         console.error("Failed to load global PocketBase data, using fallbacks:", err);
       } finally {
@@ -179,7 +198,7 @@ export const PocketBaseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   return (
-    <PocketBaseContext.Provider value={{ siteSettings, pages, isLoadingSettings, getImageUrl }}>
+    <PocketBaseContext.Provider value={{ siteSettings, pages, pageSections, isLoadingSettings, getImageUrl }}>
       {children}
     </PocketBaseContext.Provider>
   );

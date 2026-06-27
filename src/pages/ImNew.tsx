@@ -4,9 +4,50 @@ import { CheckCircle, ArrowRight, Smile, Users, Music, BookOpen, Heart, Shirt, C
 import { Link } from 'react-router-dom';
 import { usePocketBase } from '../context/PocketBaseContext';
 
+const getIcon = (name: string, size = 24) => {
+  switch (name) {
+    case 'Smile': return <Smile size={size} />;
+    case 'Users': return <Users size={size} />;
+    case 'Music': return <Music size={size} />;
+    case 'BookOpen': return <BookOpen size={size} />;
+    case 'Heart': return <Heart size={size} />;
+    case 'Shirt': return <Shirt size={size} />;
+    case 'Droplets': return <Droplets size={size} />;
+    case 'UserPlus': return <UserPlus size={size} />;
+    case 'HeartHandshake': return <HeartHandshake size={size} />;
+    case 'Compass': return <Compass size={size} />;
+    default: return <Smile size={size} />;
+  }
+};
+
 export default function ImNew() {
-  const { pages, getImageUrl } = usePocketBase();
+  const { pages, pageSections, getImageUrl } = usePocketBase();
   const page = pages['im-new'];
+  const sections = pageSections['im-new'] || {};
+
+  const youreInvitedSection = sections['youre-invited'];
+  const whatToExpectSection = sections['what-to-expect'];
+  const nextStepsSection = sections['next-steps'];
+
+  const expectList = whatToExpectSection?.content_json && Array.isArray(whatToExpectSection.content_json)
+    ? whatToExpectSection.content_json
+    : [
+        { icon: "Smile", title: "Smiling Faces", text: "From the car park to the auditorium, our guest services team is here to guide you, answer any questions, and make you feel right at home." },
+        { icon: "Users", title: "Personal Connection", text: "Stop by our First-Time Guest area. We have a gift for you and a team of people ready to show you around and help you take your first steps." },
+        { icon: "Music", title: "Engaging Worship", text: "There will be a live worship team that leads us into the presence of God with powerful songs as we exalt Jesus together every Sunday." },
+        { icon: "BookOpen", title: "Biblical Teaching", text: "Most weekends our Lead Pastor preaches from the Word of God — practical, biblically grounded messages with real-life application you can walk with all week." },
+        { icon: "Heart", title: "KSF Kids", text: "We always say KSF Kids is where your kids would rather be! We do more than teach Bible stories — we teach children the Gospel in a way they can understand and love.", hasAction: true },
+        { icon: "Shirt", title: "Casual Dress", text: "We are not a dress-up kind of crowd! Most people wear casual attire, but you are always welcome to wear whatever makes you comfortable. Just come as you are." }
+      ];
+
+  const stepsList = nextStepsSection?.content_json && Array.isArray(nextStepsSection.content_json)
+    ? nextStepsSection.content_json
+    : [
+        { id: "baptism", step: "STEP 1: PUBLIC DECLARATION", title: "Water Baptism", text: "Water baptism is an outward declaration of an inward decision. It symbolizes our identification with the death, burial, and resurrection of Jesus Christ. If you have repented of your sins and placed your trust in Jesus, water baptism is your direct next step!", icon: "Droplets", actionText: "Register for Baptism", actionHref: "/#contact" },
+        { id: "membership", step: "STEP 2: FIND YOUR FAMILY", title: "Church Membership", text: "We believe that every believer should be committed to a local church family. Our Covenant Membership class covers our church vision, history, leadership structure, and core beliefs, outlining what it looks like to partner together for the Gospel at KSF.", icon: "UserPlus", actionText: "Join Membership Class", actionHref: "/#contact" },
+        { id: "volunteering", step: "STEP 3: ACTIVE SERVICE", title: "Serve on a Team", text: "God has uniquely gifted you with talents, passions, and strengths to serve others. When you volunteer on one of our ministry teams (such as KSF Kids, Worship, Media, or Guest Services), you are actively building the local church and demonstrating Jesus' love.", icon: "HeartHandshake", actionText: "Start Volunteering", actionHref: "/#contact" },
+        { id: "discipleship", step: "STEP 4: DEEPEN YOUR WALK", title: "Discipleship Pathway", text: "Our Discipleship pathway exists to guide you into spiritual maturity. Through structured Bible training, foundational doctrine classes, and active participation in our Home Fellowship networks, you will learn to feed on the Word of God and mentor others.", icon: "Compass", actionText: "Explore Home Fellowships", actionHref: "/ministries/home-fellowship" }
+      ];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -90,13 +131,17 @@ export default function ImNew() {
             >
               <div className="flex items-center gap-3 font-accent font-bold text-[0.75rem] tracking-[3px] uppercase text-[#888888] mb-6">
                 <CheckCircle size={16} className="text-sky-blue" />
-                You're Invited
+                {youreInvitedSection?.subtitle || "You're Invited"}
               </div>
               <h2 className="font-headlines font-black text-3xl sm:text-5xl text-ksf-dark-text leading-[1.1] mb-6">
-                Join Us Every Sunday at <span className="text-primary-blue underline decoration-bold-red decoration-4 transition-all hover:decoration-sky-blue">8:00, 10:30, & 5:00pm.</span>
+                {youreInvitedSection?.title ? (
+                  youreInvitedSection.title
+                ) : (
+                  <>Join Us Every Sunday at <span className="text-primary-blue underline decoration-bold-red decoration-4 transition-all hover:decoration-sky-blue">8:00, 10:30, & 5:00pm.</span></>
+                )}
               </h2>
               <p className="text-[#555555] font-body text-[1.1rem] leading-[1.85] mb-10 max-w-lg">
-                If it's your first time at KSF, you are our honoured guest. We understand that showing up somewhere new can feel nerve-wracking, so here's a little more about what Kingdom Seekers Fellowship is like and what you can expect when you walk through our doors.
+                {youreInvitedSection?.description || "If it's your first time at KSF, you are our honoured guest. We understand that showing up somewhere new can feel nerve-wracking, so here's a little more about what Kingdom Seekers Fellowship is like and what you can expect when you walk through our doors."}
               </p>
               <Link 
                 to="/about/story"
@@ -121,12 +166,12 @@ export default function ImNew() {
               
               {/* Main Photo */}
               <div className="absolute top-0 right-0 w-[280px] h-[340px] rounded-[24px_24px_24px_80px] overflow-hidden shadow-2xl z-10 transition-transform hover:scale-[1.02]">
-                <img src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600&q=80" alt="KSF Congregation" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                <img src={getImageUrl(youreInvitedSection, 'image_1', 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600&q=80')} alt="KSF Congregation" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               
               {/* Overlapping Photo */}
               <div className="absolute bottom-0 right-[100px] sm:right-[120px] w-[210px] h-[200px] rounded-[20px] overflow-hidden shadow-2xl z-20 border-8 border-ksf-gray-bg transition-transform hover:scale-[1.05]">
-                <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=80" alt="KSF Welcome" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                <img src={getImageUrl(youreInvitedSection, 'image_2', 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=80')} alt="KSF Welcome" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
             </motion.div>
           </div>
@@ -163,7 +208,7 @@ export default function ImNew() {
               viewport={{ once: true }}
               className="font-headlines font-black text-3xl sm:text-[2.8rem] text-ksf-white mb-6 tracking-tight"
             >
-              What To Expect
+              {whatToExpectSection?.title || "What To Expect"}
             </motion.h2>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -172,7 +217,7 @@ export default function ImNew() {
               transition={{ delay: 0.2 }}
               className="text-ksf-white/55 font-body text-[1.1rem] max-w-xl mx-auto leading-relaxed"
             >
-              We understand that showing up somewhere new for the first time can be nerve-wracking, so here's what to expect when you visit Kingdom Seekers Fellowship.
+              {whatToExpectSection?.description || "We understand that showing up somewhere new for the first time can be nerve-wracking, so here's what to expect when you visit Kingdom Seekers Fellowship."}
             </motion.p>
           </div>
 
@@ -183,14 +228,7 @@ export default function ImNew() {
             viewport={{ once: true }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {[
-              { icon: <Smile />, title: "Smiling Faces", text: "From the car park to the auditorium, our guest services team is here to guide you, answer any questions, and make you feel right at home." },
-              { icon: <Users />, title: "Personal Connection", text: "Stop by our First-Time Guest area. We have a gift for you and a team of people ready to show you around and help you take your first steps." },
-              { icon: <Music />, title: "Engaging Worship", text: "There will be a live worship team that leads us into the presence of God with powerful songs as we exalt Jesus together every Sunday." },
-              { icon: <BookOpen />, title: "Biblical Teaching", text: "Most weekends our Lead Pastor preaches from the Word of God — practical, biblically grounded messages with real-life application you can walk with all week." },
-              { icon: <Heart />, title: "KSF Kids", text: "We always say KSF Kids is where your kids would rather be! We do more than teach Bible stories — we teach children the Gospel in a way they can understand and love.", hasAction: true },
-              { icon: <Shirt />, title: "Casual Dress", text: "We are not a dress-up kind of crowd! Most people wear casual attire, but you are always welcome to wear whatever makes you comfortable. Just come as you are." },
-            ].map((card, idx) => (
+            {expectList.map((card: any, idx: number) => (
               <motion.div
                 key={idx}
                 variants={itemVariants}
@@ -201,7 +239,7 @@ export default function ImNew() {
                 <div className="absolute top-0 left-0 w-0 h-[3px] bg-gradient-to-r from-primary-blue to-sky-blue group-hover:w-full transition-all duration-500" />
                 
                 <div className="w-14 h-14 rounded-full bg-[#EEF3FB] flex items-center justify-center mb-6 text-primary-blue transition-colors group-hover:bg-primary-blue group-hover:text-ksf-white">
-                  {React.cloneElement(card.icon as React.ReactElement, { size: 26 })}
+                  {getIcon(card.icon, 26)}
                 </div>
                 
                 <h3 className="font-accent font-black text-base text-ksf-dark-text tracking-[2px] uppercase mb-3">
@@ -231,116 +269,45 @@ export default function ImNew() {
         <div className="container mx-auto px-6 lg:px-12">
           <div className="text-center mb-20">
             <span className="font-accent font-bold text-sky-blue text-[0.8rem] tracking-[4px] uppercase mb-4 block">
-              YOUR JOURNEY CONTINUES
+              {nextStepsSection?.subtitle || "YOUR JOURNEY CONTINUES"}
             </span>
             <h2 className="text-primary-blue font-headlines font-black text-4xl sm:text-5xl mb-6 tracking-tight">
-              Taking Your Next Steps
+              {nextStepsSection?.title || "Taking Your Next Steps"}
             </h2>
             <p className="text-slate-500 font-body text-[1.1rem] max-w-xl mx-auto leading-relaxed">
-              Discipleship is a lifetime journey. Wherever you are on your walk with God, we are here to help you take the next step.
+              {nextStepsSection?.description || "Discipleship is a lifetime journey. Wherever you are on your walk with God, we are here to help you take the next step."}
             </p>
           </div>
 
           <div className="space-y-16">
-            {/* 1. Baptism */}
-            <div id="baptism" className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 items-center bg-slate-50 p-8 sm:p-12 rounded-[2.5rem] border border-slate-100 transition-all hover:shadow-xl">
-              <div className="lg:col-span-4 flex justify-center">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-sky-blue/10 flex items-center justify-center text-sky-blue">
-                  <Droplets size={48} className="sm:size-12" />
+            {stepsList.map((stepItem: any, idx: number) => {
+              const isEven = idx % 2 === 1;
+              return (
+                <div key={stepItem.id || idx} id={stepItem.id} className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 items-center bg-slate-50 p-8 sm:p-12 rounded-[2.5rem] border border-slate-100 transition-all hover:shadow-xl">
+                  <div className={`lg:col-span-4 flex justify-center ${isEven ? 'lg:order-last' : ''}`}>
+                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-sky-blue/10 flex items-center justify-center text-sky-blue">
+                      {getIcon(stepItem.icon, 48)}
+                    </div>
+                  </div>
+                  <div className="lg:col-span-8 space-y-4 text-center lg:text-left">
+                    <span className="font-accent text-xs font-black text-bold-red tracking-widest uppercase">{stepItem.step}</span>
+                    <h3 className="font-headlines font-black text-3xl text-primary-blue">{stepItem.title}</h3>
+                    <p className="font-body text-slate-600 leading-relaxed max-w-2xl">
+                      {stepItem.text}
+                    </p>
+                    <div className="pt-2">
+                      <Link 
+                        to={stepItem.actionHref || "/#contact"}
+                        className="inline-flex items-center gap-2 bg-primary-blue text-white px-6 py-3 rounded-xl font-accent font-bold text-xs tracking-wider uppercase hover:bg-bold-red transition-all"
+                      >
+                        {stepItem.actionText}
+                        <ArrowRight size={14} />
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="lg:col-span-8 space-y-4 text-center lg:text-left">
-                <span className="font-accent text-xs font-black text-bold-red tracking-widest uppercase">STEP 1: PUBLIC DECLARATION</span>
-                <h3 className="font-headlines font-black text-3xl text-primary-blue">Water Baptism</h3>
-                <p className="font-body text-slate-600 leading-relaxed max-w-2xl">
-                  Water baptism is an outward declaration of an inward decision. It symbolizes our identification with the death, burial, and resurrection of Jesus Christ. If you have repented of your sins and placed your trust in Jesus, water baptism is your direct next step!
-                </p>
-                <div className="pt-2">
-                  <Link 
-                    to="/#contact"
-                    className="inline-flex items-center gap-2 bg-primary-blue text-white px-6 py-3 rounded-xl font-accent font-bold text-xs tracking-wider uppercase hover:bg-bold-red transition-all"
-                  >
-                    Register for Baptism
-                    <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Membership */}
-            <div id="membership" className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 items-center bg-slate-50 p-8 sm:p-12 rounded-[2.5rem] border border-slate-100 transition-all hover:shadow-xl">
-              <div className="lg:col-span-4 flex justify-center lg:order-last">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-blue-600/10 flex items-center justify-center text-primary-blue">
-                  <UserPlus size={48} className="sm:size-12" />
-                </div>
-              </div>
-              <div className="lg:col-span-8 space-y-4 text-center lg:text-left">
-                <span className="font-accent text-xs font-black text-bold-red tracking-widest uppercase">STEP 2: FIND YOUR FAMILY</span>
-                <h3 className="font-headlines font-black text-3xl text-primary-blue">Church Membership</h3>
-                <p className="font-body text-slate-600 leading-relaxed max-w-2xl">
-                  We believe that every believer should be committed to a local church family. Our Covenant Membership class covers our church vision, history, leadership structure, and core beliefs, outlining what it looks like to partner together for the Gospel at KSF.
-                </p>
-                <div className="pt-2">
-                  <Link 
-                    to="/#contact"
-                    className="inline-flex items-center gap-2 bg-primary-blue text-white px-6 py-3 rounded-xl font-accent font-bold text-xs tracking-wider uppercase hover:bg-bold-red transition-all"
-                  >
-                    Join Membership Class
-                    <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Volunteering */}
-            <div id="volunteering" className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 items-center bg-slate-50 p-8 sm:p-12 rounded-[2.5rem] border border-slate-100 transition-all hover:shadow-xl">
-              <div className="lg:col-span-4 flex justify-center">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-emerald-600/10 flex items-center justify-center text-emerald-600">
-                  <HeartHandshake size={48} className="sm:size-12" />
-                </div>
-              </div>
-              <div className="lg:col-span-8 space-y-4 text-center lg:text-left">
-                <span className="font-accent text-xs font-black text-bold-red tracking-widest uppercase">STEP 3: ACTIVE SERVICE</span>
-                <h3 className="font-headlines font-black text-3xl text-primary-blue">Serve on a Team</h3>
-                <p className="font-body text-slate-600 leading-relaxed max-w-2xl">
-                  God has uniquely gifted you with talents, passions, and strengths to serve others. When you volunteer on one of our ministry teams (such as KSF Kids, Worship, Media, or Guest Services), you are actively building the local church and demonstrating Jesus' love.
-                </p>
-                <div className="pt-2">
-                  <Link 
-                    to="/#contact"
-                    className="inline-flex items-center gap-2 bg-primary-blue text-white px-6 py-3 rounded-xl font-accent font-bold text-xs tracking-wider uppercase hover:bg-bold-red transition-all"
-                  >
-                    Start Volunteering
-                    <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* 4. Discipleship */}
-            <div id="discipleship" className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 items-center bg-slate-50 p-8 sm:p-12 rounded-[2.5rem] border border-slate-100 transition-all hover:shadow-xl">
-              <div className="lg:col-span-4 flex justify-center lg:order-last">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-amber-600/10 flex items-center justify-center text-amber-600">
-                  <Compass size={48} className="sm:size-12" />
-                </div>
-              </div>
-              <div className="lg:col-span-8 space-y-4 text-center lg:text-left">
-                <span className="font-accent text-xs font-black text-bold-red tracking-widest uppercase">STEP 4: DEEPEN YOUR WALK</span>
-                <h3 className="font-headlines font-black text-3xl text-primary-blue">Discipleship Pathway</h3>
-                <p className="font-body text-slate-600 leading-relaxed max-w-2xl">
-                  Our Discipleship pathway exists to guide you into spiritual maturity. Through structured Bible training, foundational doctrine classes, and active participation in our Home Fellowship networks, you will learn to feed on the Word of God and mentor others.
-                </p>
-                <div className="pt-2">
-                  <Link 
-                    to="/ministries/home-fellowship"
-                    className="inline-flex items-center gap-2 bg-primary-blue text-white px-6 py-3 rounded-xl font-accent font-bold text-xs tracking-wider uppercase hover:bg-bold-red transition-all"
-                  >
-                    Explore Home Fellowships
-                    <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
       </section>
