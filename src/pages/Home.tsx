@@ -404,7 +404,7 @@ export default function Home() {
     <div className="">
     <div className="relative pt-4 sm:pt-6 px-4 sm:px-6 lg:px-8 pb-0">
       {/* Hero Section - Floating Card Style */}
-      <section className="relative h-[85vh] sm:h-[90vh] w-full rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden flex items-end pb-12 sm:pb-24 lg:pb-32">
+      <section className="relative min-h-[580px] md:min-h-[640px] lg:min-h-[720px] h-[85vh] sm:h-[90vh] w-full rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden flex items-end pt-24 pb-12 sm:pb-20 md:pb-24 lg:pb-28">
         {/* Background Image & Dark Overlays */}
         <div className="absolute inset-0 z-0 scale-105 animate-slow-zoom">
           <img 
@@ -420,7 +420,7 @@ export default function Home() {
         </div>
 
         {/* Hero Content */}
-        <div className="container mx-auto px-8 sm:px-16 md:px-24 relative z-30">
+        <div className="container mx-auto px-6 sm:px-12 md:px-16 lg:px-24 relative z-30">
           <div className="max-w-5xl text-ksf-white">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
@@ -431,11 +431,11 @@ export default function Home() {
                 {page?.hero_subtitle || 'JOIN US THIS WEEKEND'}
               </span>
 
-              <h1 className="font-headlines font-black text-6xl sm:text-8xl md:text-9xl leading-[0.85] mb-6 tracking-tighter">
+              <h1 className="font-headlines font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl leading-[0.85] mb-6 tracking-tighter">
                 {page?.hero_heading || 'Sundays @'}
               </h1>
               
-              <div className="flex flex-wrap items-center gap-6 sm:gap-10 font-headlines font-black text-4xl sm:text-6xl md:text-8xl mb-8 sm:mb-12 tracking-tighter">
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6 md:gap-8 font-headlines font-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl mb-8 sm:mb-12 tracking-tighter">
                 <span className="hover:text-bold-red transition-colors cursor-default">8:00</span>
                 <span className="text-ksf-white/20 font-thin select-none">/</span>
                 <span className="hover:text-bold-red transition-colors cursor-default">9:45</span>
@@ -443,7 +443,7 @@ export default function Home() {
                 <span className="hover:text-bold-red transition-colors cursor-default">11:30</span>
               </div>
 
-              <p className="font-body text-base sm:text-xl md:text-2xl mb-12 sm:mb-16 opacity-80 font-medium tracking-tight max-w-2xl leading-relaxed">
+              <p className="font-body text-sm sm:text-base md:text-lg lg:text-xl mb-10 sm:mb-14 opacity-80 font-medium tracking-tight max-w-2xl leading-relaxed">
                 {page?.hero_description || 'Experience a community where lives are transformed. Making Disciples. Multiplying Churches.'}
               </p>
               
