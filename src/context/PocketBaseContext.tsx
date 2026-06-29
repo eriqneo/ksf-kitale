@@ -124,10 +124,37 @@ const DEFAULT_PAGES: Record<string, any> = {
   }
 };
 
+const DEFAULT_FOOTER = {
+  quick_links: [
+    { label: 'Home', href: '/' },
+    { label: 'Who We Are', href: '/#who-we-are' },
+    { label: 'Events', href: '/#events' },
+    { label: 'Sermons', href: '/sermons' },
+    { label: 'Prayer Points', href: '/prayer-points' },
+    { label: 'Give', href: '/give' },
+    { label: 'Prayer Requests', href: '/#prayer' }
+  ],
+  ministry_links: [
+    { label: 'KSF Kids', href: '/ministries/kids' },
+    { label: 'Youth', href: '/ministries/youth' },
+    { label: 'Women\'s Fellowship', href: '/ministries/women' },
+    { label: 'Men\'s Brotherhood', href: '/ministries/men' },
+    { label: 'Home Fellowship', href: '/ministries/home-fellowship' },
+    { label: 'Global Missions', href: '/about/story#strategies' }
+  ],
+  service_times: [
+    { name: 'First Service', time: '8:00 AM' },
+    { name: 'Second Service', time: '10:30 AM' },
+    { name: 'Evening Service', time: '5:00 PM' }
+  ],
+  copyright: "© 2026 Kingdom Seekers Fellowship Kitale. All rights reserved."
+};
+
 interface PocketBaseContextType {
   siteSettings: typeof DEFAULT_SITE_SETTINGS;
   pages: Record<string, any>;
   pageSections: Record<string, Record<string, any>>;
+  footerData: typeof DEFAULT_FOOTER;
   isLoadingSettings: boolean;
   getImageUrl: (record: any, fieldName: string, fallback: string) => string;
 }
@@ -138,6 +165,7 @@ export const PocketBaseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [siteSettings, setSiteSettings] = useState<any>(DEFAULT_SITE_SETTINGS);
   const [pages, setPages] = useState<Record<string, any>>(DEFAULT_PAGES);
   const [pageSections, setPageSections] = useState<Record<string, Record<string, any>>>({});
+  const [footerData, setFooterData] = useState<any>(DEFAULT_FOOTER);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
   useEffect(() => {
@@ -181,6 +209,18 @@ export const PocketBaseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           sectionsMap[pageKey][sectionKey] = sectionRecord;
         });
         setPageSections(sectionsMap);
+
+        // Fetch footer configurations (single record)
+        try {
+          const footerRes = await pb.collection('ksf_footer').getFullList({
+            requestKey: null
+          });
+          if (footerRes.length > 0) {
+            setFooterData(footerRes[0]);
+          }
+        } catch (footerErr) {
+          console.error("Failed to load footer data from PocketBase, using defaults:", footerErr);
+        }
       } catch (err) {
         console.error("Failed to load global PocketBase data, using fallbacks:", err);
       } finally {
@@ -198,7 +238,7 @@ export const PocketBaseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   return (
-    <PocketBaseContext.Provider value={{ siteSettings, pages, pageSections, isLoadingSettings, getImageUrl }}>
+    <PocketBaseContext.Provider value={{ siteSettings, pages, pageSections, footerData, isLoadingSettings, getImageUrl }}>
       {children}
     </PocketBaseContext.Provider>
   );

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { usePocketBase } from '../context/PocketBaseContext';
 
 export default function Footer() {
-  const { siteSettings } = usePocketBase();
+  const { siteSettings, footerData } = usePocketBase();
   return (
     <footer className="relative bg-ksf-footer-bg text-ksf-white pt-24">
       {/* Separator Gradient */}
@@ -65,15 +65,7 @@ export default function Footer() {
               Quick Links
             </h4>
             <ul className="space-y-4">
-              {[
-                { label: 'Home', href: '/' },
-                { label: 'Who We Are', href: '/#who-we-are' },
-                { label: 'Events', href: '/#events' },
-                { label: 'Sermons', href: '/sermons' },
-                { label: 'Prayer Points', href: '/prayer-points' },
-                { label: 'Give', href: '/give' },
-                { label: 'Prayer Requests', href: '/#prayer' }
-              ].map((link) => (
+              {(footerData?.quick_links || []).map((link: any) => (
                 <li key={link.label}>
                   <Link to={link.href} className="text-ksf-white/60 font-body hover:text-bold-red transition-colors duration-300">
                     {link.label}
@@ -89,14 +81,7 @@ export default function Footer() {
               Ministries
             </h4>
             <ul className="space-y-4">
-              {[
-                { label: 'KSF Kids', href: '/ministries/kids' },
-                { label: 'Youth', href: '/ministries/youth' },
-                { label: "Women's Fellowship", href: '/ministries/women' },
-                { label: "Men's Brotherhood", href: '/ministries/men' },
-                { label: 'Home Fellowship', href: '/ministries/home-fellowship' },
-                { label: 'Global Missions', href: '/about/story#strategies' }
-              ].map((min) => (
+              {(footerData?.ministry_links || []).map((min: any) => (
                 <li key={min.label}>
                   <Link to={min.href} className="text-ksf-white/60 font-body hover:text-bold-red transition-colors duration-300">
                     {min.label}
@@ -113,18 +98,12 @@ export default function Footer() {
             </h4>
             <div className="space-y-6">
               <div className="space-y-2">
-                <div className="flex justify-between items-center group">
-                  <span className="text-ksf-white/40 text-xs font-accent uppercase tracking-widest">First Service</span>
-                  <span className="text-ksf-white font-headlines font-bold">8:00 AM</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-ksf-white/40 text-xs font-accent uppercase tracking-widest">Second Service</span>
-                  <span className="text-ksf-white font-headlines font-bold">10:30 AM</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-ksf-white/40 text-xs font-accent uppercase tracking-widest">Evening Service</span>
-                  <span className="text-ksf-white font-headlines font-bold">5:00 PM</span>
-                </div>
+                {(footerData?.service_times || []).map((service: any, i: number) => (
+                  <div key={i} className="flex justify-between items-center group">
+                    <span className="text-ksf-white/40 text-xs font-accent uppercase tracking-widest">{service.name}</span>
+                    <span className="text-ksf-white font-headlines font-bold">{service.time}</span>
+                  </div>
+                ))}
               </div>
               
               <div className="pt-6 border-t border-ksf-white/10 flex items-start gap-3">
@@ -142,7 +121,7 @@ export default function Footer() {
         <div className="container mx-auto px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-center md:text-left space-y-2">
             <p className="text-ksf-white/30 text-xs font-body">
-              &copy; {new Date().getFullYear()} Kingdom Seekers Fellowship. All Rights Reserved.
+              {footerData?.copyright ? footerData.copyright.replace('{year}', new Date().getFullYear().toString()) : `© ${new Date().getFullYear()} Kingdom Seekers Fellowship. All Rights Reserved.`}
             </p>
             <p className="text-ksf-white/20 text-[10px] uppercase font-accent tracking-widest">
               Made with ❤️ for God&apos;s Glory
