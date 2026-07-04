@@ -5,8 +5,10 @@ import { Link } from 'react-router-dom';
 import { usePocketBase } from '../context/PocketBaseContext';
 
 export default function MinistriesKids() {
-  const { pages, getImageUrl } = usePocketBase();
+  const { pages, pageSections, getImageUrl } = usePocketBase();
   const page = pages['ministries-kids'];
+  const whySection = pageSections?.['ministries-kids']?.['why-ksf-kids'];
+  const ageGroupsSection = pageSections?.['ministries-kids']?.['age-groups'];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [parentName, setParentName] = useState('');
@@ -106,28 +108,34 @@ export default function MinistriesKids() {
               transition={{ duration: 0.8 }}
             >
               <h2 className="text-primary-blue font-headlines font-black text-4xl sm:text-5xl mb-8 tracking-tight leading-tight">
-                Your Child's Favorite Part <br className="hidden sm:block" /> of the Week
+                {whySection?.title || (
+                  <>Your Child's Favorite Part <br className="hidden sm:block" /> of the Week</>
+                )}
               </h2>
               <p className="text-[#555555] font-body text-lg leading-relaxed mb-10 opacity-90">
-                At KSF Kids, we don't just babysit; we make disciples. Our mission is to partner with parents to help children discover Jesus and build their lives on His Word. We believe that if you train up a child in the way they should go, they will not depart from it.
+                {whySection?.description || "At KSF Kids, we don't just babysit; we make disciples. Our mission is to partner with parents to help children discover Jesus and build their lives on His Word. We believe that if you train up a child in the way they should go, they will not depart from it."}
               </p>
               
               <div className="space-y-6">
-                {[
-                  { icon: <Heart className="text-bold-red" />, title: "Gospel-Centered", desc: "Every lesson points back to the grace and truth of Jesus Christ." },
-                  { icon: <ShieldCheck className="text-primary-blue" />, title: "Secure & Safe", desc: "Our check-in system and background-checked volunteers ensure peace of mind." },
-                  { icon: <Star className="text-[#B49121]" />, title: "Fun & Engaging", desc: "We use games, drama, and worship music that kids actually love." },
-                ].map((item, idx) => (
-                  <div key={idx} className="flex gap-4">
-                    <div className="w-12 h-12 rounded-full bg-ksf-gray-bg flex-shrink-0 flex items-center justify-center">
-                      {item.icon}
+                {(whySection?.content_json || [
+                  { icon: "Heart", title: "Gospel-Centered", desc: "Every lesson points back to the grace and truth of Jesus Christ." },
+                  { icon: "ShieldCheck", title: "Secure & Safe", desc: "Our check-in system and background-checked volunteers ensure peace of mind." },
+                  { icon: "Star", title: "Fun & Engaging", desc: "We use games, drama, and worship music that kids actually love." },
+                ]).map((item: any, idx: number) => {
+                  const IconComp = item.icon === 'ShieldCheck' ? ShieldCheck : item.icon === 'Star' ? Star : Heart;
+                  const iconColor = item.icon === 'ShieldCheck' ? 'text-primary-blue' : item.icon === 'Star' ? 'text-[#B49121]' : 'text-bold-red';
+                  return (
+                    <div key={idx} className="flex gap-4">
+                      <div className="w-12 h-12 rounded-full bg-ksf-gray-bg flex-shrink-0 flex items-center justify-center">
+                        <IconComp className={iconColor} />
+                      </div>
+                      <div>
+                        <h4 className="font-headlines font-black text-primary-blue text-lg mb-1 uppercase tracking-tight">{item.title}</h4>
+                        <p className="text-[#6B7280] font-body text-sm leading-relaxed">{item.desc}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-headlines font-black text-primary-blue text-lg mb-1 uppercase tracking-tight">{item.title}</h4>
-                      <p className="text-[#6B7280] font-body text-sm leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </motion.div>
 
@@ -136,21 +144,49 @@ export default function MinistriesKids() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="relative group"
+              className="relative min-h-[500px] flex items-center justify-center lg:justify-end group"
             >
-              <div className="absolute inset-0 bg-bold-red -rotate-3 rounded-ksf-lg group-hover:rotate-0 transition-transform duration-500" />
-              <div className="relative rounded-ksf-lg overflow-hidden shadow-2xl aspect-square">
-                <img 
-                  src="https://images.unsplash.com/photo-1544333346-64e4fe18204e?w=800&q=80" 
-                  alt="Happy Kids" 
-                  className="w-full h-full object-cover transition-transform hover:scale-110 duration-1000"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary-blue/80 to-transparent flex items-end p-8">
-                  <p className="text-ksf-white font-headlines font-black text-2xl uppercase tracking-tighter italic">
-                    "Train up a child in the way he should go..."
-                    <span className="block font-accent text-xs tracking-[4px] mt-2 text-bold-red not-italic">PROVERBS 22:6</span>
-                  </p>
+              <div className="relative w-full max-w-[450px]">
+                {/* LARGE CARD (Portrait) */}
+                <div 
+                  className="w-[70%] aspect-[2/3] rounded-[16px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] ml-auto relative"
+                >
+                  <img 
+                    src={getImageUrl(whySection, 'image_1', 'https://images.unsplash.com/photo-1544333346-64e4fe18204e?w=800&q=80')} 
+                    alt={whySection?.title || "Happy Kids"} 
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-1000"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary-blue/90 to-transparent flex items-end p-6">
+                    <p className="text-ksf-white font-headlines font-black text-xl uppercase tracking-tighter italic">
+                      "Train up a child in the way he should go..."
+                      <span className="block font-accent text-[10px] tracking-[4px] mt-2 text-bold-red not-italic">PROVERBS 22:6</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* MEDIUM CARD (Overlap lower-left) */}
+                <div 
+                  className="absolute bottom-[10%] left-0 w-[55%] aspect-square rounded-[12px] overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.12)] border-4 border-white"
+                >
+                  <img 
+                    src={getImageUrl(whySection, 'image_2', 'https://images.unsplash.com/photo-1519340333755-56e9c1d04579?w=800&q=80')} 
+                    alt="Kids Activity" 
+                    className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-1000"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+
+                {/* SMALL CARD (Bottom-right overlap, slightly rotated) */}
+                <div 
+                  className="absolute bottom-0 right-[-10%] w-[45%] aspect-square rounded-[12px] overflow-hidden shadow-[0_10px_25px_rgba(0,0,0,0.1)] border-4 border-white rotate-3"
+                >
+                  <img 
+                    src={getImageUrl(whySection, 'image_3', 'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=800&q=80')} 
+                    alt="Kids Fun" 
+                    className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-1000"
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
               </div>
             </motion.div>
@@ -162,16 +198,21 @@ export default function MinistriesKids() {
       <section className="bg-ksf-gray-bg py-24">
         <div className="container mx-auto px-6 lg:px-12 text-center mb-16">
           <span className="font-accent font-black text-sky-blue text-[0.8rem] tracking-[4px] uppercase mb-4 block">
-            ENVIRONMENTS
+            {ageGroupsSection?.subtitle || 'ENVIRONMENTS'}
           </span>
           <h2 className="text-primary-blue font-headlines font-black text-4xl sm:text-5xl mb-6 tracking-tight">
-            Tailored Experiences for Every Age
+            {ageGroupsSection?.title || 'Tailored Experiences for Every Age'}
           </h2>
+          {ageGroupsSection?.description && (
+            <p className="text-[#555555] font-body text-lg leading-relaxed max-w-2xl mx-auto mt-4">
+              {ageGroupsSection.description}
+            </p>
+          )}
         </div>
 
         <div className="container mx-auto px-6 lg:px-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
+            {(ageGroupsSection?.content_json || [
               { 
                 age: "Ages 0 - 3",
                 name: "The Nursery", 
@@ -190,7 +231,11 @@ export default function MinistriesKids() {
                 desc: "Deep-dive teaching and small group discussions for growing faith and friendship.",
                 img: "https://picsum.photos/seed/champions/600/400"
               },
-            ].map((group, idx) => (
+            ]).map((group: any, idx: number) => {
+              // Prefer uploaded PocketBase images (image_1, image_2, image_3) over JSON URLs
+              const imageFields = ['image_1', 'image_2', 'image_3'];
+              const cardImg = getImageUrl(ageGroupsSection, imageFields[idx], group.img || `https://picsum.photos/seed/ksf-group-${idx}/600/400`);
+              return (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 30 }}
@@ -201,7 +246,7 @@ export default function MinistriesKids() {
                 className="bg-ksf-white rounded-ksf-lg overflow-hidden group shadow-sm hover:shadow-2xl transition-all duration-300 border border-ksf-gray-border"
               >
                 <div className="h-48 overflow-hidden relative">
-                  <img src={group.img} alt={group.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
+                  <img src={cardImg} alt={group.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
                   <div className="absolute top-4 left-4 bg-bold-red text-ksf-white px-3 py-1 rounded-full font-accent font-black text-[10px] tracking-[2px] uppercase">
                     {group.age}
                   </div>
@@ -211,7 +256,7 @@ export default function MinistriesKids() {
                   <p className="text-[#6B7280] font-body text-sm leading-relaxed">{group.desc}</p>
                 </div>
               </motion.div>
-            ))}
+            )})}
           </div>
         </div>
       </section>

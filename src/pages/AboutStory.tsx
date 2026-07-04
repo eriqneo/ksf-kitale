@@ -153,6 +153,7 @@ export default function AboutStory() {
   const jesusSection = sections['its-all-about-jesus'];
   const commissionSection = sections['the-great-commission'];
   const strategiesSection = sections['our-strategies'];
+  const leadershipSection = sections['leadership-team'];
 
   const vision = commissionSection?.content_json?.vision || {
     title: "Vision",
@@ -499,7 +500,13 @@ export default function AboutStory() {
 
           {/* Strategy Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {strategiesList.map((strategy: any, idx: number) => (
+            {strategiesList.map((strategy: any, idx: number) => {
+              // Map image_1, image_2, image_3 to the first 3 cards; fall back to strategy.image or picsum
+              const imageFields = ['image_1', 'image_2', 'image_3'];
+              const cardImg = idx < 3
+                ? getImageUrl(strategiesSection, imageFields[idx], strategy.image || `https://picsum.photos/seed/ksf-strat-${idx}/400/270`)
+                : (strategy.image || `https://picsum.photos/seed/ksf-strat-${idx}/400/270`);
+              return (
               <motion.div
                 key={strategy.id || idx}
                 initial={{ opacity: 0, y: 30 }}
@@ -510,7 +517,7 @@ export default function AboutStory() {
                 className="group relative aspect-[3/2] rounded-[12px] overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-300"
               >
                 <img 
-                  src={strategy.image || `https://picsum.photos/seed/ksf-strat-${idx}/400/270`} 
+                  src={cardImg}
                   alt={strategy.title} 
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   referrerPolicy="no-referrer"
@@ -528,7 +535,7 @@ export default function AboutStory() {
                   </button>
                 </div>
               </motion.div>
-            ))}
+            )})}
           </div>
         </div>
       </section>
@@ -539,14 +546,13 @@ export default function AboutStory() {
           {/* Header */}
           <div className="text-center mb-16">
             <span className="font-accent font-black text-sky-blue text-[0.8rem] tracking-[4px] uppercase mb-4 block">
-              MEET THE TEAM
+              {leadershipSection?.subtitle || 'MEET THE TEAM'}
             </span>
             <h2 className="text-primary-blue font-headlines font-black text-4xl sm:text-5xl mb-6 tracking-tight">
-              Led by the Spirit, Guided by the Word
+              {leadershipSection?.title || 'Led by the Spirit, Guided by the Word'}
             </h2>
             <p className="text-[#555555] font-body text-[1.1rem] max-w-[650px] mx-auto leading-relaxed opacity-80">
-              Our leadership team is committed to serving KSF with humility, 
-              integrity, and a deep love for God and people.
+              {leadershipSection?.description || 'Our leadership team is committed to serving KSF with humility, integrity, and a deep love for God and people.'}
             </p>
           </div>
 

@@ -232,7 +232,17 @@ export const PocketBaseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const getImageUrl = (record: any, fieldName: string, fallback: string) => {
     if (record && record[fieldName]) {
-      return pb.files.getURL(record, record[fieldName]);
+      // Build the URL manually using collectionName (or collectionId) and record id
+      // This is more reliable than pb.files.getURL which can fail if the record
+      // is not a full PocketBase RecordModel instance (e.g. plain objects from context).
+      const collection = record.collectionName || record.collectionId;
+      const recordId = record.id;
+      const filename = record[fieldName];
+      if (collection && recordId && filename) {
+        return `${PB_URL}/api/files/${collection}/${recordId}/${filename}`;
+      }
+      // Fallback to SDK method
+      return pb.files.getURL(record, filename);
     }
     return fallback;
   };
