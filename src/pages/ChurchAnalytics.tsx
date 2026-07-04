@@ -59,6 +59,10 @@ export default function ChurchAnalytics() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
 
+  // Pagination State
+  const [logPage, setLogPage] = useState(1);
+  const LOG_PAGE_SIZE = 12;
+
   // Filters State
   const [filterType, setFilterType] = useState('All');
   const [filterSession, setFilterSession] = useState('All');
@@ -417,8 +421,11 @@ export default function ChurchAnalytics() {
   const youthPct = totalDemo > 0 ? Math.round((totalYouth / totalDemo) * 100) : 0;
   const adultsPct = totalDemo > 0 ? 100 - (childrenPct + preteensPct + youthPct) : 0;
 
-  // Trend line coordinates calculation (Filtered records, up to last 6)
-  const trendPoints = [...filteredRecords].slice(0, 6).reverse();
+  // Trend line coordinates calculation (Filtered records, up to last 8)
+  const trendPoints = [...filteredRecords]
+    .filter(r => r.event_type === 'Sunday Service')
+    .slice(0, 8)
+    .reverse();
   const maxVal = trendPoints.length > 0 
     ? Math.max(...trendPoints.map(r => getHeadcountForRecord(r))) * 1.1 
     : 100;
@@ -438,6 +445,65 @@ export default function ChurchAnalytics() {
     const y = chartHeight - (((getHeadcountForRecord(r) - minVal) / Math.max(1, maxVal - minVal)) * chartHeight);
     return `${x},${y}`;
   }).join(' ');
+
+  // --- VISITOR GROWTH CHART DATA ---
+  // Last 8 records with visitors, reversed for chronological order
+  const visitorPoints = [...filteredRecords].slice(0, 8).reverse();
+  const maxVisitors = visitorPoints.length > 0
+    ? Math.max(...visitorPoints.map(r => r.visitors_count)) * 1.2 || 10
+    : 10;
+  const visitorPointsStr = visitorPoints.map((r, i) => {
+    const x = (i / Math.max(1, visitorPoints.length - 1)) * chartWidth;
+    const y = chartHeight - ((r.visitors_count / maxVisitors) * chartHeight);
+    return `${x},${y}`;
+  }).join(' ');
+  const memberPointsStr = visitorPoints.map((r, i) => {
+    const maxM = Math.max(...visitorPoints.map(v => v.members_count)) * 1.2 || 10;
+    const x = (i / Math.max(1, visitorPoints.length - 1)) * chartWidth;
+    const y = chartHeight - ((r.members_count / maxM) * chartHeight);
+    return `${x},${y}`;
+  }).join(' ');
+
+  // --- FIRST-TIMERS FUNNEL DATA (last 6 months bucketed) ---
+  const funnelMonths: { label: string; firstTimers: number; salvations: number }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    const yr = d.getFullYear();
+    const mo = d.getMonth();
+    const recs = records.filter(r => {
+      const rd = new Date(r.event_date);
+      return rd.getFullYear() === yr && rd.getMonth() === mo;
+    });
+    funnelMonths.push({
+      label: d.toLocaleDateString('en-US', { month: 'short' }),
+      firstTimers: recs.reduce((s, r) => s + r.first_timers, 0),
+      salvations: recs.reduce((s, r) => s + r.salvations, 0),
+    });
+  }
+  const maxFunnel = Math.max(...funnelMonths.map(m => m.firstTimers), 1);
+
+  // --- MONTH-OVER-MONTH TOTAL HEADCOUNT (last 6 months) ---
+  const momMonths: { label: string; total: number }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    const yr = d.getFullYear();
+    const mo = d.getMonth();
+    const recs = records.filter(r => {
+      const rd = new Date(r.event_date);
+      return rd.getFullYear() === yr && rd.getMonth() === mo;
+    });
+    momMonths.push({
+      label: d.toLocaleDateString('en-US', { month: 'short' }),
+      total: recs.reduce((s, r) => s + r.members_count + r.visitors_count, 0),
+    });
+  }
+  const maxMom = Math.max(...momMonths.map(m => m.total), 1);
+
+  // Pagination helpers
+  const totalLogPages = Math.max(1, Math.ceil(filteredRecords.length / LOG_PAGE_SIZE));
+  const paginatedRecords = filteredRecords.slice((logPage - 1) * LOG_PAGE_SIZE, logPage * LOG_PAGE_SIZE);
 
   // Handler to export filtered records as CSV (Senior Data Analyst addition)
   const handleExportCSV = () => {
@@ -583,7 +649,7 @@ export default function ChurchAnalytics() {
                   <div className="relative">
                     <select
                       value={filterType}
-                      onChange={(e) => setFilterType(e.target.value)}
+                      onChange={(e) => { setFilterType(e.target.value); setLogPage(1); }}
                       className={`w-full text-xs p-3 rounded-xl border outline-none appearance-none cursor-pointer ${
                         theme === 'dark'
                           ? 'bg-white/[0.02] border-white/10 text-white focus:border-sky-blue [&>option]:bg-[#0B1528] [&>option]:text-white'
@@ -609,7 +675,7 @@ export default function ChurchAnalytics() {
                   <div className="relative">
                     <select
                       value={filterSession}
-                      onChange={(e) => setFilterSession(e.target.value)}
+                      onChange={(e) => { setFilterSession(e.target.value); setLogPage(1); }}
                       className={`w-full text-xs p-3 rounded-xl border outline-none appearance-none cursor-pointer ${
                         theme === 'dark'
                           ? 'bg-white/[0.02] border-white/10 text-white focus:border-sky-blue [&>option]:bg-[#0B1528] [&>option]:text-white'
@@ -636,7 +702,7 @@ export default function ChurchAnalytics() {
                   <div className="relative">
                     <select
                       value={filterDateRange}
-                      onChange={(e) => setFilterDateRange(e.target.value)}
+                      onChange={(e) => { setFilterDateRange(e.target.value); setLogPage(1); }}
                       className={`w-full text-xs p-3 rounded-xl border outline-none appearance-none cursor-pointer ${
                         theme === 'dark'
                           ? 'bg-white/[0.02] border-white/10 text-white focus:border-sky-blue [&>option]:bg-[#0B1528] [&>option]:text-white'
@@ -662,7 +728,7 @@ export default function ChurchAnalytics() {
                   <div className="relative">
                     <select
                       value={filterDemographic}
-                      onChange={(e) => setFilterDemographic(e.target.value)}
+                      onChange={(e) => { setFilterDemographic(e.target.value); setLogPage(1); }}
                       className={`w-full text-xs p-3 rounded-xl border outline-none appearance-none cursor-pointer ${
                         theme === 'dark'
                           ? 'bg-white/[0.02] border-white/10 text-white focus:border-sky-blue [&>option]:bg-[#0B1528] [&>option]:text-white'
@@ -1074,7 +1140,143 @@ export default function ChurchAnalytics() {
               </div>
             </div>
 
+            {/* ANALYTICS CHARTS ROW 2 */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+              {/* Visitor Growth Trend */}
+              <div className={`p-6 rounded-3xl shadow-2xl col-span-1 lg:col-span-2 border transition-all duration-300 ${
+                theme === 'dark' ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200/80'
+              }`}>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="font-headlines font-black text-base">Visitor Outreach Trend</h3>
+                    <p className={`text-[10px] mt-0.5 font-accent font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-white/30' : 'text-slate-400'}`}>
+                      Visitors vs Members — last 8 services
+                    </p>
+                  </div>
+                  <div className={`flex items-center gap-4 text-[10px] font-accent font-bold ${theme === 'dark' ? 'text-white/40' : 'text-slate-400'}`}>
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-1 rounded-full bg-emerald-400 inline-block" /> Visitors</span>
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-1 rounded-full bg-sky-400 inline-block" /> Members</span>
+                  </div>
+                </div>
+                {visitorPoints.length >= 2 ? (
+                  <div className="w-full">
+                    <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full overflow-visible">
+                      <defs>
+                        <linearGradient id="visitor-gradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#34d399" stopOpacity="0.15" />
+                          <stop offset="100%" stopColor="#34d399" stopOpacity="0.0" />
+                        </linearGradient>
+                        <linearGradient id="member-gradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.10" />
+                          <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.0" />
+                        </linearGradient>
+                      </defs>
+                      <line x1="0" y1={chartHeight/2} x2={chartWidth} y2={chartHeight/2} stroke={theme==='dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'} strokeWidth="1" />
+                      <line x1="0" y1={chartHeight} x2={chartWidth} y2={chartHeight} stroke={theme==='dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'} strokeWidth="1.5" />
+                      {/* Members area */}
+                      <path d={`M 0,${chartHeight} L ${memberPointsStr} L ${chartWidth},${chartHeight} Z`} fill="url(#member-gradient)" />
+                      <polyline fill="none" stroke={theme==='dark' ? '#38bdf8' : '#0D3875'} strokeWidth="2" strokeDasharray="4 3" points={memberPointsStr} />
+                      {/* Visitors area */}
+                      <path d={`M 0,${chartHeight} L ${visitorPointsStr} L ${chartWidth},${chartHeight} Z`} fill="url(#visitor-gradient)" />
+                      <polyline fill="none" stroke="#34d399" strokeWidth="3" points={visitorPointsStr} />
+                      {/* Visitor dots */}
+                      {visitorPoints.map((r, i) => {
+                        const x = (i / Math.max(1, visitorPoints.length - 1)) * chartWidth;
+                        const y = chartHeight - ((r.visitors_count / maxVisitors) * chartHeight);
+                        return (
+                          <g key={r.id}>
+                            <circle cx={x} cy={y} r="5" fill="#fff" stroke="#34d399" strokeWidth="2.5" />
+                            <text x={x} y={y - 10} textAnchor="middle" fontSize="9" fill="#34d399" fontWeight="bold">{r.visitors_count}</text>
+                          </g>
+                        );
+                      })}
+                    </svg>
+                    <div className={`flex justify-between items-center mt-4 px-1 text-[9px] font-accent font-bold uppercase ${theme === 'dark' ? 'text-white/40' : 'text-slate-400'}`}>
+                      {visitorPoints.map(r => (
+                        <span key={r.id}>{new Date(r.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-xs opacity-30">Not enough data to render chart.</div>
+                )}
+              </div>
+
+              {/* Month-over-Month Headcount */}
+              <div className={`p-6 rounded-3xl shadow-2xl border transition-all duration-300 ${
+                theme === 'dark' ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200/80'
+              }`}>
+                <h3 className="font-headlines font-black text-base mb-1">Monthly Growth</h3>
+                <p className={`text-[10px] mb-6 font-accent font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-white/30' : 'text-slate-400'}`}>
+                  Total headcount per month
+                </p>
+                <div className="space-y-3">
+                  {momMonths.map((m, i) => {
+                    const pct = maxMom > 0 ? Math.round((m.total / maxMom) * 100) : 0;
+                    const isLatest = i === momMonths.length - 1;
+                    return (
+                      <div key={m.label} className="flex items-center gap-3">
+                        <span className={`text-[10px] font-accent font-bold w-8 shrink-0 ${theme === 'dark' ? 'text-white/40' : 'text-slate-400'}`}>{m.label}</span>
+                        <div className={`flex-1 h-5 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-white/5' : 'bg-slate-100'}`}>
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${isLatest ? 'bg-sky-400' : theme === 'dark' ? 'bg-white/20' : 'bg-slate-300'}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className={`text-[10px] font-bold font-mono w-10 text-right shrink-0 ${isLatest ? 'text-sky-400' : theme === 'dark' ? 'text-white/50' : 'text-slate-500'}`}>{m.total}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* HARVEST FUNNEL CHART */}
+            <div className={`p-6 rounded-3xl shadow-2xl border transition-all duration-300 ${
+              theme === 'dark' ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200/80'
+            }`}>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="font-headlines font-black text-base">Harvest Funnel</h3>
+                  <p className={`text-[10px] mt-0.5 font-accent font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-white/30' : 'text-slate-400'}`}>
+                    First-timers registered vs Salvations — last 6 months
+                  </p>
+                </div>
+                <div className={`flex items-center gap-4 text-[10px] font-accent font-bold ${theme === 'dark' ? 'text-white/40' : 'text-slate-400'}`}>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-2.5 rounded-sm bg-purple-500/60 inline-block" /> 1st Timers</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-2.5 rounded-sm bg-bold-red/80 inline-block" /> Salvations</span>
+                </div>
+              </div>
+              <div className="flex items-end gap-3 h-32">
+                {funnelMonths.map((m, i) => {
+                  const ftH = maxFunnel > 0 ? Math.round((m.firstTimers / maxFunnel) * 100) : 0;
+                  const svH = maxFunnel > 0 ? Math.round((m.salvations / maxFunnel) * 100) : 0;
+                  const isLatest = i === funnelMonths.length - 1;
+                  return (
+                    <div key={m.label} className="flex-1 flex flex-col items-center gap-1.5">
+                      <div className="w-full flex items-end gap-0.5 h-24">
+                        <div
+                          title={`${m.firstTimers} first-timers`}
+                          className={`flex-1 rounded-t-md transition-all duration-500 ${isLatest ? 'bg-purple-500' : 'bg-purple-500/40'}`}
+                          style={{ height: `${ftH}%` }}
+                        />
+                        <div
+                          title={`${m.salvations} salvations`}
+                          className={`flex-1 rounded-t-md transition-all duration-500 ${isLatest ? 'bg-bold-red' : 'bg-bold-red/50'}`}
+                          style={{ height: `${svH}%` }}
+                        />
+                      </div>
+                      <span className={`text-[9px] font-accent font-bold ${theme === 'dark' ? 'text-white/40' : 'text-slate-400'}`}>{m.label}</span>
+                      <span className={`text-[9px] font-mono font-bold ${isLatest ? 'text-purple-400' : theme === 'dark' ? 'text-white/30' : 'text-slate-400'}`}>{m.firstTimers}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* PAST RECORDS TABLE */}
+
             <div className={`rounded-3xl overflow-hidden border transition-all duration-300 shadow-2xl ${
               theme === 'dark'
                 ? 'bg-white/[0.02] border-white/10'
@@ -1131,7 +1333,7 @@ export default function ChurchAnalytics() {
                     theme === 'dark' ? 'divide-white/5 text-white/80' : 'divide-slate-100 text-slate-700'
                   }`}>
                     {filteredRecords.length > 0 ? (
-                      filteredRecords.map(record => (
+                      paginatedRecords.map(record => (
                         <tr key={record.id} className={`transition-colors ${
                           theme === 'dark' ? 'hover:bg-white/[0.01]' : 'hover:bg-slate-50/50'
                         }`}>
@@ -1188,6 +1390,70 @@ export default function ChurchAnalytics() {
                   </tbody>
                 </table>
               </div>
+
+              {/* PAGINATION CONTROLS */}
+              {filteredRecords.length > LOG_PAGE_SIZE && (
+                <div className={`flex items-center justify-between px-6 py-4 border-t ${
+                  theme === 'dark' ? 'border-white/5' : 'border-slate-100'
+                }`}>
+                  <span className={`text-[10px] font-accent font-bold ${theme === 'dark' ? 'text-white/30' : 'text-slate-400'}`}>
+                    Showing {(logPage - 1) * LOG_PAGE_SIZE + 1}–{Math.min(logPage * LOG_PAGE_SIZE, filteredRecords.length)} of {filteredRecords.length}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setLogPage(p => Math.max(1, p - 1))}
+                      disabled={logPage === 1}
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs transition-all cursor-pointer disabled:opacity-30 disabled:cursor-default ${
+                        theme === 'dark'
+                          ? 'bg-white/5 border border-white/10 hover:bg-white/10 text-white'
+                          : 'bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      ‹
+                    </button>
+                    {Array.from({ length: totalLogPages }, (_, i) => i + 1)
+                      .filter(p => p === 1 || p === totalLogPages || Math.abs(p - logPage) <= 1)
+                      .reduce<(number | '...')[]>((acc, p, i, arr) => {
+                        if (i > 0 && typeof arr[i - 1] === 'number' && (p as number) - (arr[i - 1] as number) > 1) {
+                          acc.push('...');
+                        }
+                        acc.push(p);
+                        return acc;
+                      }, [])
+                      .map((p, i) =>
+                        p === '...' ? (
+                          <span key={`ellipsis-${i}`} className={`w-8 h-8 flex items-center justify-center text-xs ${theme === 'dark' ? 'text-white/30' : 'text-slate-400'}`}>…</span>
+                        ) : (
+                          <button
+                            key={p}
+                            onClick={() => setLogPage(p as number)}
+                            className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold font-accent transition-all cursor-pointer ${
+                              logPage === p
+                                ? 'bg-sky-blue text-white shadow-md shadow-sky-blue/20'
+                                : theme === 'dark'
+                                ? 'bg-white/5 border border-white/10 hover:bg-white/10 text-white/60'
+                                : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-600'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        )
+                      )
+                    }
+                    <button
+                      onClick={() => setLogPage(p => Math.min(totalLogPages, p + 1))}
+                      disabled={logPage === totalLogPages}
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs transition-all cursor-pointer disabled:opacity-30 disabled:cursor-default ${
+                        theme === 'dark'
+                          ? 'bg-white/5 border border-white/10 hover:bg-white/10 text-white'
+                          : 'bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      ›
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>
