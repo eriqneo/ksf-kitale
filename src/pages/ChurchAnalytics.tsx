@@ -34,6 +34,7 @@ interface AttendanceRecord {
   visitors_count: number;
   first_timers: number;
   children_count: number;
+  preteens_count?: number;
   youth_count: number;
   adults_count: number;
   salvations: number;
@@ -62,6 +63,7 @@ export default function ChurchAnalytics() {
   const [filterType, setFilterType] = useState('All');
   const [filterSession, setFilterSession] = useState('All');
   const [filterDateRange, setFilterDateRange] = useState('All Time');
+  const [filterDemographic, setFilterDemographic] = useState('All');
 
   // Form State
   const [eventDate, setEventDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -72,6 +74,7 @@ export default function ChurchAnalytics() {
   const [visitorsCount, setVisitorsCount] = useState('');
   const [firstTimers, setFirstTimers] = useState('');
   const [childrenCount, setChildrenCount] = useState('');
+  const [preteensCount, setPreteensCount] = useState('');
   const [youthCount, setYouthCount] = useState('');
   const [adultsCount, setAdultsCount] = useState('');
   const [salvations, setSalvations] = useState('');
@@ -127,9 +130,12 @@ export default function ChurchAnalytics() {
     const mCount = parseInt(membersCount) || 0;
     const vCount = parseInt(visitorsCount) || 0;
     const fTimers = parseInt(firstTimers) || 0;
-    const cCount = parseInt(childrenCount) || 0;
-    const yCount = parseInt(youthCount) || 0;
-    const aCount = parseInt(adultsCount) || 0;
+    
+    // Demographics are now fully optional
+    const cCount = childrenCount === '' ? 0 : parseInt(childrenCount);
+    const pCount = preteensCount === '' ? 0 : parseInt(preteensCount);
+    const yCount = youthCount === '' ? 0 : parseInt(youthCount);
+    const aCount = adultsCount === '' ? 0 : parseInt(adultsCount);
     const sCount = parseInt(salvations) || 0;
 
     // Basic Validation
@@ -145,13 +151,7 @@ export default function ChurchAnalytics() {
       return;
     }
 
-    const totalHeadcount = mCount + vCount;
-    const demographicSum = cCount + yCount + aCount;
-    if (demographicSum !== totalHeadcount && (cCount > 0 || yCount > 0 || aCount > 0)) {
-      setFormError(`Demographics mismatch: Children (${cCount}) + Youth (${yCount}) + Adults (${aCount}) = ${demographicSum}, but Total Headcount is ${totalHeadcount}. Please adjust counts.`);
-      setIsSubmitting(false);
-      return;
-    }
+    // Demographics are optional, so we do NOT enforce that demographic sum must equal headcount.
 
     try {
       await pb.collection('attendance_records').create({
@@ -162,9 +162,10 @@ export default function ChurchAnalytics() {
         members_count: mCount,
         visitors_count: vCount,
         first_timers: fTimers,
-        children_count: cCount,
-        youth_count: yCount,
-        adults_count: aCount,
+        children_count: childrenCount === '' ? undefined : cCount,
+        preteens_count: preteensCount === '' ? undefined : pCount,
+        youth_count: youthCount === '' ? undefined : yCount,
+        adults_count: adultsCount === '' ? undefined : aCount,
         salvations: sCount,
         recorded_by: recordedBy,
         notes: notes || undefined
@@ -179,6 +180,7 @@ export default function ChurchAnalytics() {
       setVisitorsCount('');
       setFirstTimers('');
       setChildrenCount('');
+      setPreteensCount('');
       setYouthCount('');
       setAdultsCount('');
       setSalvations('');
@@ -260,17 +262,26 @@ export default function ChurchAnalytics() {
   // Map filtered records to the current period to update charts/tables seamlessly
   const filteredRecords = currentPeriodRecords;
 
+  // Dynamic getter based on selected demographic
+  const getHeadcountForRecord = (r: AttendanceRecord) => {
+    if (filterDemographic === '4-8 years Children') return r.children_count || 0;
+    if (filterDemographic === '9-13 years Pre-Teens') return r.preteens_count || 0;
+    if (filterDemographic === '14-18 years Teens') return r.youth_count || 0;
+    if (filterDemographic === 'Adults') return r.adults_count || 0;
+    return r.members_count + r.visitors_count;
+  };
+
   // --- ANALYTICS CALCULATIONS (FILTERED & BASES) ---
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
 
   const computeKPIs = (periodRecords: AttendanceRecord[]) => {
-    const totalAttendance = periodRecords.reduce((sum, r) => sum + r.members_count + r.visitors_count, 0);
+    const totalAttendance = periodRecords.reduce((sum, r) => sum + getHeadcountForRecord(r), 0);
     const firstTimers = periodRecords.reduce((sum, r) => sum + r.first_timers, 0);
     const salvations = periodRecords.reduce((sum, r) => sum + r.salvations, 0);
     const sundays = periodRecords.filter(r => r.event_type === 'Sunday Service');
     const sundayAvg = sundays.length > 0
-      ? Math.round(sundays.reduce((sum, r) => sum + r.members_count + r.visitors_count, 0) / sundays.length)
+      ? Math.round(sundays.reduce((sum, r) => sum + getHeadcountForRecord(r), 0) / sundays.length)
       : 0;
 
     return { totalAttendance, firstTimers, salvations, sundayAvg };
@@ -322,7 +333,7 @@ export default function ChurchAnalytics() {
     const latestSunday = records.find(r => r.event_type === 'Sunday Service');
     if (latestSunday) {
       const latestTotal = latestSunday.members_count + latestSunday.visitors_count;
-      const youngPeopleCount = latestSunday.children_count + latestSunday.youth_count;
+      const youngPeopleCount = (latestSunday.children_count || 0) + (latestSunday.preteens_count || 0) + (latestSunday.youth_count || 0);
       if (latestTotal > 0 && (youngPeopleCount / latestTotal) < 0.1) {
         qaAlerts.push({
           type: 'warning',
@@ -394,41 +405,43 @@ export default function ChurchAnalytics() {
   const memberPct = totalRatio > 0 ? Math.round((totalMembers / totalRatio) * 100) : 0;
   const visitorPct = totalRatio > 0 ? 100 - memberPct : 0;
 
-  // Demographics totals (Children vs Youth vs Adults)
-  const totalChildren = filteredRecords.reduce((sum, r) => sum + r.children_count, 0);
-  const totalYouth = filteredRecords.reduce((sum, r) => sum + r.youth_count, 0);
-  const totalAdults = filteredRecords.reduce((sum, r) => sum + r.adults_count, 0);
-  const totalDemo = totalChildren + totalYouth + totalAdults;
+  // Demographics totals (Children vs Pre-Teens vs Teens vs Adults)
+  const totalChildren = filteredRecords.reduce((sum, r) => sum + (r.children_count || 0), 0);
+  const totalPreTeens = filteredRecords.reduce((sum, r) => sum + (r.preteens_count || 0), 0);
+  const totalYouth = filteredRecords.reduce((sum, r) => sum + (r.youth_count || 0), 0);
+  const totalAdults = filteredRecords.reduce((sum, r) => sum + (r.adults_count || 0), 0);
+  const totalDemo = totalChildren + totalPreTeens + totalYouth + totalAdults;
 
   const childrenPct = totalDemo > 0 ? Math.round((totalChildren / totalDemo) * 100) : 0;
+  const preteensPct = totalDemo > 0 ? Math.round((totalPreTeens / totalDemo) * 100) : 0;
   const youthPct = totalDemo > 0 ? Math.round((totalYouth / totalDemo) * 100) : 0;
-  const adultsPct = totalDemo > 0 ? 100 - (childrenPct + youthPct) : 0;
+  const adultsPct = totalDemo > 0 ? 100 - (childrenPct + preteensPct + youthPct) : 0;
 
   // Trend line coordinates calculation (Filtered records, up to last 6)
   const trendPoints = [...filteredRecords].slice(0, 6).reverse();
   const maxVal = trendPoints.length > 0 
-    ? Math.max(...trendPoints.map(r => r.members_count + r.visitors_count)) * 1.1 
+    ? Math.max(...trendPoints.map(r => getHeadcountForRecord(r))) * 1.1 
     : 100;
   const minVal = trendPoints.length > 0
-    ? Math.min(...trendPoints.map(r => r.members_count + r.visitors_count)) * 0.9
+    ? Math.min(...trendPoints.map(r => getHeadcountForRecord(r))) * 0.9
     : 0;
 
   // Calculate Average line point coordinate
   const trendAvg = trendPoints.length > 0 
-    ? Math.round(trendPoints.reduce((sum, r) => sum + r.members_count + r.visitors_count, 0) / trendPoints.length)
+    ? Math.round(trendPoints.reduce((sum, r) => sum + getHeadcountForRecord(r), 0) / trendPoints.length)
     : 0;
 
   const chartWidth = 500;
   const chartHeight = 150;
   const pointsString = trendPoints.map((r, i) => {
     const x = (i / (Math.max(1, trendPoints.length - 1))) * chartWidth;
-    const y = chartHeight - (((r.members_count + r.visitors_count - minVal) / (Math.max(1, maxVal - minVal))) * chartHeight);
+    const y = chartHeight - (((getHeadcountForRecord(r) - minVal) / Math.max(1, maxVal - minVal)) * chartHeight);
     return `${x},${y}`;
   }).join(' ');
 
   // Handler to export filtered records as CSV (Senior Data Analyst addition)
   const handleExportCSV = () => {
-    const headers = ['Date', 'Event Type', 'Event Name', 'Session', 'Members', 'Visitors', 'First Timers', 'Children', 'Youth', 'Adults', 'Salvations', 'Recorded By', 'Notes'];
+    const headers = ['Date', 'Event Type', 'Event Name', 'Session', 'Members', 'Visitors', 'First Timers', 'Children (4-8)', 'Pre-Teens (9-13)', 'Teens (14-18)', 'Adults', 'Salvations', 'Recorded By', 'Notes'];
     const rows = filteredRecords.map(r => [
       new Date(r.event_date).toLocaleDateString(),
       r.event_type,
@@ -437,9 +450,10 @@ export default function ChurchAnalytics() {
       r.members_count,
       r.visitors_count,
       r.first_timers,
-      r.children_count,
-      r.youth_count,
-      r.adults_count,
+      r.children_count || 0,
+      r.preteens_count || 0,
+      r.youth_count || 0,
+      r.adults_count || 0,
       r.salvations,
       r.recorded_by,
       (r.notes || '').replace(/"/g, '""')
@@ -560,7 +574,7 @@ export default function ChurchAnalytics() {
                   : 'bg-white border border-slate-200/80 shadow-md'
               }`}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 {/* 1. Meeting Type Filter */}
                 <div>
                   <label className={`block text-[10px] font-accent font-bold uppercase mb-2 ${
@@ -633,6 +647,33 @@ export default function ChurchAnalytics() {
                       <option value="30 Days">Last 30 Days</option>
                       <option value="This Month">This Month</option>
                       <option value="Year to Date">Year to Date</option>
+                    </select>
+                    <ChevronDown className={`absolute right-3 top-3.5 pointer-events-none ${
+                      theme === 'dark' ? 'text-white/40' : 'text-slate-400'
+                    }`} size={14} />
+                  </div>
+                </div>
+
+                {/* 4. Age Demographic Filter */}
+                <div>
+                  <label className={`block text-[10px] font-accent font-bold uppercase mb-2 ${
+                    theme === 'dark' ? 'text-white/40' : 'text-slate-400'
+                  }`}>Age Demographic</label>
+                  <div className="relative">
+                    <select
+                      value={filterDemographic}
+                      onChange={(e) => setFilterDemographic(e.target.value)}
+                      className={`w-full text-xs p-3 rounded-xl border outline-none appearance-none cursor-pointer ${
+                        theme === 'dark'
+                          ? 'bg-white/[0.02] border-white/10 text-white focus:border-sky-blue [&>option]:bg-[#0B1528] [&>option]:text-white'
+                          : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-primary-blue'
+                      }`}
+                    >
+                      <option value="All">All Headcounts</option>
+                      <option value="4-8 years Children">4-8 years Children</option>
+                      <option value="9-13 years Pre-Teens">9-13 years Pre-Teens</option>
+                      <option value="14-18 years Teens">14-18 years Teens</option>
+                      <option value="Adults">Adults</option>
                     </select>
                     <ChevronDown className={`absolute right-3 top-3.5 pointer-events-none ${
                       theme === 'dark' ? 'text-white/40' : 'text-slate-400'
@@ -891,7 +932,7 @@ export default function ChurchAnalytics() {
                       {/* Data point dots */}
                       {trendPoints.map((r, i) => {
                         const x = (i / (trendPoints.length - 1)) * chartWidth;
-                        const y = chartHeight - (((r.members_count + r.visitors_count - minVal) / (maxVal - minVal)) * chartHeight);
+                        const y = chartHeight - (((getHeadcountForRecord(r) - minVal) / Math.max(1, maxVal - minVal)) * chartHeight);
                         return (
                           <g key={r.id}>
                             <circle
@@ -909,7 +950,7 @@ export default function ChurchAnalytics() {
                               className="font-accent text-[9px] font-bold"
                               fill={theme==='dark' ? "#38bdf8" : "#0D3875"}
                             >
-                              {r.members_count + r.visitors_count}
+                              {getHeadcountForRecord(r)}
                             </text>
                           </g>
                         );
@@ -993,6 +1034,7 @@ export default function ChurchAnalytics() {
                       theme==='dark' ? "bg-white/5" : "bg-slate-100"
                     }`}>
                       <div className="bg-bold-red h-full" style={{ width: `${childrenPct}%` }} />
+                      <div className="bg-purple-500 h-full" style={{ width: `${preteensPct}%` }} />
                       <div className="bg-yellow-500 h-full" style={{ width: `${youthPct}%` }} />
                       <div className="bg-[#38bdf8] h-full" style={{ width: `${adultsPct}%` }} />
                     </div>
@@ -1001,21 +1043,28 @@ export default function ChurchAnalytics() {
                       <div className={`flex justify-between items-center text-[10px] ${theme === 'dark' ? 'text-white/60' : 'text-slate-600'}`}>
                         <div className="flex items-center gap-1.5">
                           <span className="w-2.5 h-2.5 rounded-full bg-bold-red block" />
-                          <span>Children (0-12)</span>
+                          <span>4-8 years Children</span>
                         </div>
                         <span className="font-bold">{totalChildren} ({childrenPct}%)</span>
                       </div>
                       <div className={`flex justify-between items-center text-[10px] ${theme === 'dark' ? 'text-white/60' : 'text-slate-600'}`}>
                         <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-purple-500 block" />
+                          <span>9-13 years Pre-Teens</span>
+                        </div>
+                        <span className="font-bold">{totalPreTeens} ({preteensPct}%)</span>
+                      </div>
+                      <div className={`flex justify-between items-center text-[10px] ${theme === 'dark' ? 'text-white/60' : 'text-slate-600'}`}>
+                        <div className="flex items-center gap-1.5">
                           <span className="w-2.5 h-2.5 rounded-full bg-yellow-500 block" />
-                          <span>Youth (13-17)</span>
+                          <span>14-18 years Teens</span>
                         </div>
                         <span className="font-bold">{totalYouth} ({youthPct}%)</span>
                       </div>
                       <div className={`flex justify-between items-center text-[10px] ${theme === 'dark' ? 'text-white/60' : 'text-slate-600'}`}>
                         <div className="flex items-center gap-1.5">
                           <span className="w-2.5 h-2.5 rounded-full bg-[#38bdf8] block" />
-                          <span>Adults (18+)</span>
+                          <span>Adults</span>
                         </div>
                         <span className="font-bold">{totalAdults} ({adultsPct}%)</span>
                       </div>
@@ -1357,14 +1406,13 @@ export default function ChurchAnalytics() {
                     3. Demographic Age distribution
                   </h4>
 
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[9px] font-accent font-bold uppercase mb-1.5 opacity-60">Kids (0-12) *</label>
+                      <label className="block text-[9px] font-accent font-bold uppercase mb-1.5 opacity-60">Children (4-8) (Opt)</label>
                       <input
                         type="number"
                         min="0"
                         placeholder="0"
-                        required
                         value={childrenCount}
                         onChange={(e) => setChildrenCount(e.target.value)}
                         className={`w-full text-center font-mono text-sm p-3 rounded-xl border outline-none ${
@@ -1375,12 +1423,26 @@ export default function ChurchAnalytics() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-accent font-bold uppercase mb-1.5 opacity-60">Youth (13-17) *</label>
+                      <label className="block text-[9px] font-accent font-bold uppercase mb-1.5 opacity-60">Pre-Teens (9-13) (Opt)</label>
                       <input
                         type="number"
                         min="0"
                         placeholder="0"
-                        required
+                        value={preteensCount}
+                        onChange={(e) => setPreteensCount(e.target.value)}
+                        className={`w-full text-center font-mono text-sm p-3 rounded-xl border outline-none ${
+                          theme === 'dark'
+                            ? 'bg-white/[0.02] border-white/10 text-white focus:border-sky-blue'
+                            : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-primary-blue'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-accent font-bold uppercase mb-1.5 opacity-60">Teens (14-18) (Opt)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="0"
                         value={youthCount}
                         onChange={(e) => setYouthCount(e.target.value)}
                         className={`w-full text-center font-mono text-sm p-3 rounded-xl border outline-none ${
@@ -1391,12 +1453,11 @@ export default function ChurchAnalytics() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-accent font-bold uppercase mb-1.5 opacity-60">Adults (18+) *</label>
+                      <label className="block text-[9px] font-accent font-bold uppercase mb-1.5 opacity-60">Adults (Opt)</label>
                       <input
                         type="number"
                         min="0"
                         placeholder="0"
-                        required
                         value={adultsCount}
                         onChange={(e) => setAdultsCount(e.target.value)}
                         className={`w-full text-center font-mono text-sm p-3 rounded-xl border outline-none ${
