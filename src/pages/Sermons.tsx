@@ -119,8 +119,8 @@ export default function Sermons() {
   const heroImage = getImageUrl(page, 'hero_image', 'https://images.unsplash.com/photo-1505663912202-ac22d4cb3707?w=1920&q=80');
 
   // Compute filters dynamically
-  const uniqueSeries = Array.from(new Set(sermonsList.map(s => s.series).filter(Boolean)));
-  const FILTERS = ['All', ...uniqueSeries];
+  const uniqueSeries = Array.from(new Set(sermonsList.map(s => s.series).filter(Boolean))) as string[];
+  const FILTERS: string[] = ['All', ...uniqueSeries];
 
   const handleSelectSermon = (sermon: any) => {
     setFeaturedSermon(sermon);

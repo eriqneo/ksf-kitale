@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import PocketBase from 'pocketbase';
 
-const PB_URL = import.meta.env.VITE_PB_URL || 'https://ksfkitale.pockethost.io';
+const PB_URL = (import.meta as any).env?.VITE_PB_URL || 'https://ksfkitale.pockethost.io';
 export const pb = new PocketBase(PB_URL);
 
 // --- STATIC FALLBACK DATA ---

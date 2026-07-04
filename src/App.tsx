@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -16,6 +16,7 @@ import BibleTrivia from './pages/BibleTrivia';
 import Give from './pages/Give';
 import Live from './pages/Live';
 import PrayerPoints from './pages/PrayerPoints';
+import ChurchAnalytics from './pages/ChurchAnalytics';
 import ScrollToTop from './components/ScrollToTop';
 import Preloader from './components/Preloader';
 import BackToTop from './components/BackToTop';
@@ -25,6 +26,7 @@ import { PocketBaseProvider, usePocketBase } from './context/PocketBaseContext';
 function MainAppContent() {
   const { isLoadingSettings } = usePocketBase();
   const [isLoadingTimer, setIsLoadingTimer] = React.useState(true);
+  const location = useLocation();
 
   React.useEffect(() => {
     // Keep preloader for at least 1.5s for smooth transition
@@ -33,6 +35,7 @@ function MainAppContent() {
   }, []);
 
   const showPreloader = isLoadingTimer || isLoadingSettings;
+  const isAnalyticsPage = location.pathname === '/church-analytics';
 
   return (
     <>
@@ -44,7 +47,7 @@ function MainAppContent() {
           <ScrollToTop />
           <BackToTop />
           <div className="min-h-screen bg-ksf-gray-bg font-body selection:bg-primary-blue/10 selection:text-primary-blue flex flex-col">
-            <Navbar />
+            {!isAnalyticsPage && <Navbar />}
             <main className="flex-grow">
               <Routes>
                 <Route path="/" element={<Home />} />
@@ -61,11 +64,12 @@ function MainAppContent() {
                 <Route path="/give" element={<Give />} />
                 <Route path="/live" element={<Live />} />
                 <Route path="/prayer-points" element={<PrayerPoints />} />
+                <Route path="/church-analytics" element={<ChurchAnalytics />} />
                 {/* Fallback to Home */}
                 <Route path="*" element={<Home />} />
               </Routes>
             </main>
-            <Footer />
+            {!isAnalyticsPage && <Footer />}
           </div>
         </>
       )}
