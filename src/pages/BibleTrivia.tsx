@@ -289,6 +289,7 @@ export default function BibleTrivia() {
     setShowExplanation(false);
     setShowResults(false);
     setResultsSummary(null);
+    setRoundAttempts([]);  // Reset attempts here directly — reliable and avoids useEffect race
     setIsPlaying(true);
   };
 
@@ -468,11 +469,7 @@ export default function BibleTrivia() {
   // Track attempts for final post-round results screen
   const [roundAttempts, setRoundAttempts] = useState<AttemptSummary[]>([]);
 
-  useEffect(() => {
-    if (isPlaying && currentIdx === 0) {
-      setRoundAttempts([]);
-    }
-  }, [isPlaying, currentIdx]);
+  // roundAttempts is reset directly inside startQuiz() for reliability
 
   const submitAnswer = () => {
     if (selectedOption === null || isAnswerLocked) return;
@@ -539,20 +536,10 @@ export default function BibleTrivia() {
     const nextXP = totalXP + currentScore;
     await handleUpdateXP(nextXP);
 
-    // Compute attempts fraction
-    const correctCount = roundAttempts.filter(a => a.isCorrect).length + (selectedOption === gameQuestions[currentIdx].correctAnswer ? 1 : 0);
-    
-    // Insert final question attempt into summary safely
-    const finalActiveQ = gameQuestions[currentIdx];
-    const finalIsCorrect = selectedOption === finalActiveQ.correctAnswer;
-    const finalRoundAttempts = [
-      ...roundAttempts,
-      {
-        question: finalActiveQ,
-        selectedOption: selectedOption,
-        isCorrect: finalIsCorrect
-      }
-    ];
+    // roundAttempts already contains ALL attempts including the last one,
+    // because submitAnswer() records every answer before nextQuestion() calls finishRound().
+    // Do NOT append the last attempt again here — that was causing duplication.
+    const correctCount = roundAttempts.filter(a => a.isCorrect).length;
 
     // Compile Results summary data
     setResultsSummary({
@@ -561,7 +548,7 @@ export default function BibleTrivia() {
       totalCount: gameQuestions.length,
       ageGroup: selectedAgeGroup || 'General',
       category: activeCategory,
-      attempts: finalRoundAttempts,
+      attempts: roundAttempts,  // Use roundAttempts directly — no duplication
       xpGained: currentScore,
       isHighScore: isNewHighScore,
       timeSpent: elapsedTime
