@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   TrendingUp, 
@@ -58,6 +58,8 @@ export default function ChurchAnalytics() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Pagination State
   const [logPage, setLogPage] = useState(1);
@@ -504,6 +506,108 @@ export default function ChurchAnalytics() {
   // Pagination helpers
   const totalLogPages = Math.max(1, Math.ceil(filteredRecords.length / LOG_PAGE_SIZE));
   const paginatedRecords = filteredRecords.slice((logPage - 1) * LOG_PAGE_SIZE, logPage * LOG_PAGE_SIZE);
+
+  // Bulk Upload logic
+  const handleDownloadTemplate = () => {
+    const headers = ['Date (YYYY-MM-DD)', 'Event Type', 'Event Name (Optional)', 'Session', 'Members', 'Visitors', 'First Timers', 'Children (4-8)', 'Pre-Teens (9-13)', 'Teens (14-18)', 'Adults', 'Salvations', 'Recorded By', 'Notes'];
+    const exampleRow = [
+      new Date().toISOString().split('T')[0],
+      'Sunday Service',
+      'Morning Glory',
+      '1st Service',
+      '120',
+      '15',
+      '3',
+      '30',
+      '10',
+      '15',
+      '80',
+      '2',
+      'Admin',
+      'Great service'
+    ];
+
+    const csvContent = headers.join(',') + '\\n' + exampleRow.join(',');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'KSF_Attendance_Template.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const text = await file.text();
+      const lines = text.split('\\n');
+      
+      const parseCSVRow = (str: string) => {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < str.length; i++) {
+          const char = str[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            result.push(current);
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        result.push(current);
+        return result.map(v => v.trim().replace(/^"|"$/g, ''));
+      };
+
+      const recordsToUpload = [];
+      
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const row = parseCSVRow(lines[i]);
+        if (row.length < 12) continue; // Basic validation
+
+        recordsToUpload.push({
+          event_date: new Date(row[0]).toISOString(),
+          event_type: row[1] || 'Sunday Service',
+          event_name: row[2] || '',
+          session: row[3] || 'Morning',
+          members_count: parseInt(row[4]) || 0,
+          visitors_count: parseInt(row[5]) || 0,
+          first_timers: parseInt(row[6]) || 0,
+          children_count: row[7] ? parseInt(row[7]) : undefined,
+          preteens_count: row[8] ? parseInt(row[8]) : undefined,
+          youth_count: row[9] ? parseInt(row[9]) : undefined,
+          adults_count: row[10] ? parseInt(row[10]) : undefined,
+          salvations: parseInt(row[11]) || 0,
+          recorded_by: row[12] || 'Bulk Upload',
+          notes: row[13] || ''
+        });
+      }
+
+      for (const record of recordsToUpload) {
+        await pb.collection('attendance_records').create(record);
+      }
+      
+      await fetchRecords();
+      alert(`Successfully uploaded ${recordsToUpload.length} records!`);
+    } catch (err: any) {
+      console.error('Upload failed:', err);
+      alert('Failed to upload records. Please check the CSV format.\\nError: ' + err.message);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   // Handler to export filtered records as CSV (Senior Data Analyst addition)
   const handleExportCSV = () => {
@@ -1288,7 +1392,36 @@ export default function ChurchAnalytics() {
                 <h3 className="font-headlines font-black text-base">
                   Attendance Log Book
                 </h3>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <input 
+                    type="file" 
+                    accept=".csv" 
+                    ref={fileInputRef}
+                    className="hidden" 
+                    onChange={handleFileUpload} 
+                  />
+                  <button
+                    onClick={handleDownloadTemplate}
+                    className={`text-[10px] border py-1.5 px-3.5 rounded-xl font-accent font-black tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+                      theme === 'dark'
+                        ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white/80'
+                        : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    CSV Template
+                  </button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className={`text-[10px] border py-1.5 px-3.5 rounded-xl font-accent font-black tracking-wider uppercase transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
+                      theme === 'dark'
+                        ? 'bg-emerald-500/20 border-emerald-500/30 hover:bg-emerald-500/30 text-emerald-400'
+                        : 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100 text-emerald-700'
+                    }`}
+                  >
+                    {isUploading ? <RefreshCw size={12} className="animate-spin" /> : null}
+                    {isUploading ? 'Uploading...' : 'Upload CSV'}
+                  </button>
                   <button
                     onClick={handleExportCSV}
                     className={`text-[10px] border py-1.5 px-3.5 rounded-xl font-accent font-black tracking-wider uppercase transition-all duration-200 cursor-pointer ${
