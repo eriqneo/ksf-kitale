@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, type Variants } from 'motion/react';
 import { CheckCircle, ArrowRight, Smile, Users, Music, BookOpen, Heart, Shirt, ChevronRight, Droplets, UserPlus, HeartHandshake, Compass } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePocketBase } from '../context/PocketBaseContext';
@@ -59,7 +59,7 @@ export default function ImNew() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
   };

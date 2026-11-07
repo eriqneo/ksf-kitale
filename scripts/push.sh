@@ -1,20 +1,19 @@
 #!/bin/bash
-# KSF Kitale push and deploy script
-
-# Exit immediately if a command exits with a non-zero status
+# Type-check, commit staged-and-unstaged changes with a message, and push to main.
+# Usage: scripts/push.sh "feat: describe your change"
 set -e
 
-echo "=== 1. VERIFYING TYPESCRIPT COMPILATION ==="
+if [ -z "$1" ]; then
+  echo "Usage: $0 \"commit message\"" >&2
+  exit 1
+fi
+
+echo "=== Type-checking ==="
 npm run lint
 
-echo "=== 2. COMMITTING CHANGES TO GIT ==="
-git add .
-git commit -m "feat: implement church analytics dashboard with light/dark theme, delta KPIs, SVG charts, positive QA alerts, and CSV export"
+echo "=== Changes to be committed ==="
+git status --short
 
-echo "=== 3. PUSHING TO REPOSITORY ==="
+git add -A
+git commit -m "$1"
 git push origin main
-
-echo "=== 4. POCKETBASE CONNECTION CONFIRMED ==="
-echo "Analytics dashboard live at: /church-analytics"
-echo "Database hosted on PocketHost at: https://ksfkitale.pockethost.io"
-echo "Status: Connected & Synchronized!"

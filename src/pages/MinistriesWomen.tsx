@@ -118,7 +118,7 @@ export default function MinistriesWomen() {
                 ].map((item, idx) => (
                   <div key={idx} className="flex gap-4 group">
                     <div className="w-14 h-14 rounded-full bg-ksf-gray-bg flex-shrink-0 flex items-center justify-center group-hover:bg-primary-blue transition-colors duration-300">
-                      {React.cloneElement(item.icon as React.ReactElement, { className: "group-hover:text-ksf-white transition-colors" })}
+                      {React.cloneElement(item.icon as React.ReactElement<{ className?: string }>, { className: "group-hover:text-ksf-white transition-colors" })}
                     </div>
                     <div>
                       <h4 className="font-headlines font-black text-primary-blue text-lg mb-1 uppercase tracking-tight">{item.title}</h4>

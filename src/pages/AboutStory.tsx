@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, type Variants } from 'motion/react';
 import { ArrowRight, Compass, Target, ChevronRight, Facebook, Linkedin, Plus, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePocketBase, pb } from '../context/PocketBaseContext';
@@ -242,7 +242,7 @@ export default function AboutStory() {
     { name: "Impact (2024-Present)", filter: "impact" }
   ];
 
-  const cardVariants = {
+  const cardVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: { 
       opacity: 1, 
