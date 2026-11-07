@@ -1,8 +1,6 @@
 import PocketBase from 'pocketbase';
 
-const PB_URL = 'https://ksfkitale.pockethost.io';
-const ADMIN_EMAIL = 'aturaerick@gmail.com';
-const ADMIN_PASS = 'dGY@SrzA86PQc5n';
+import { PB_URL, ADMIN_EMAIL, ADMIN_PASS } from './lib/env.mjs';
 
 const pb = new PocketBase(PB_URL);
 
@@ -23,7 +21,7 @@ async function run() {
   console.log("=== CREATING AND SEEDING ATTENDANCE RECORDS COLLECTION ===");
   try {
     console.log("Authenticating...");
-    await retryRequest(() => pb.admins.authWithPassword(ADMIN_EMAIL, ADMIN_PASS));
+    await retryRequest(() => pb.collection('_superusers').authWithPassword(ADMIN_EMAIL, ADMIN_PASS));
     console.log("Authenticated successfully!");
 
     // Delete existing collection if it exists to cleanly recreate schema

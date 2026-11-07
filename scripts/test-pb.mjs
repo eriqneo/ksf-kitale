@@ -1,10 +1,11 @@
 import PocketBase from 'pocketbase';
+import { PB_URL, ADMIN_EMAIL, ADMIN_PASS } from './lib/env.mjs';
 
 async function test() {
-  const pb = new PocketBase('https://ksfkitale.pockethost.io');
+  const pb = new PocketBase(PB_URL);
   try {
     console.log("Attempting authentication...");
-    const authData = await pb.admins.authWithPassword('aturaerick@gmail.com', 'dGY@SrzA86PQc5n');
+    const authData = await pb.collection('_superusers').authWithPassword(ADMIN_EMAIL, ADMIN_PASS);
     console.log("Auth success!");
     console.log("Token:", pb.authStore.token ? "Exists" : "None");
     console.log("Record/Admin ID:", authData.record.id);

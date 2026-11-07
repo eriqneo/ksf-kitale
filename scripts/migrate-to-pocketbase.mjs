@@ -1,8 +1,6 @@
 import PocketBase from 'pocketbase';
 
-const PB_URL = 'https://ksfkitale.pockethost.io';
-const ADMIN_EMAIL = 'aturaerick@gmail.com';
-const ADMIN_PASS = 'dGY@SrzA86PQc5n';
+import { PB_URL, ADMIN_EMAIL, ADMIN_PASS } from './lib/env.mjs';
 
 const pb = new PocketBase(PB_URL);
 
@@ -1302,7 +1300,7 @@ async function runMigration() {
   console.log("=== KSF KITALE PORTING AND SEED SCRIPT ===");
   try {
     console.log(`[1/5] Authenticating to PocketBase at: ${PB_URL}...`);
-    await retryRequest(() => pb.admins.authWithPassword(ADMIN_EMAIL, ADMIN_PASS));
+    await retryRequest(() => pb.collection('_superusers').authWithPassword(ADMIN_EMAIL, ADMIN_PASS));
     console.log("Authentication successful!");
 
     console.log("\n[2/5] Initializing collection recreation (deleting if exists to refresh)...");

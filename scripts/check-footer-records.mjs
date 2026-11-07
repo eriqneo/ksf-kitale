@@ -1,15 +1,13 @@
 import PocketBase from 'pocketbase';
 
-const PB_URL = 'https://ksfkitale.pockethost.io';
-const ADMIN_EMAIL = 'aturaerick@gmail.com';
-const ADMIN_PASS = 'dGY@SrzA86PQc5n';
+import { PB_URL, ADMIN_EMAIL, ADMIN_PASS } from './lib/env.mjs';
 
 const pb = new PocketBase(PB_URL);
 
 async function run() {
   try {
     console.log("Authenticating...");
-    await pb.admins.authWithPassword(ADMIN_EMAIL, ADMIN_PASS);
+    await pb.collection('_superusers').authWithPassword(ADMIN_EMAIL, ADMIN_PASS);
     console.log("Authenticated!");
 
     console.log("Fetching collection...");
