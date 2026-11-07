@@ -9,6 +9,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { readValue, writeValue } from '../utils/indexedDB';
 import { usePocketBase, pb } from '../context/PocketBaseContext';
+import HeroCarousel, { type HeroCarouselSlide } from '../components/HeroCarousel';
 
 const ALL_EVENTS = [
   { 
@@ -152,9 +153,30 @@ const DEFAULT_SERVICES = [
 ];
 
 export default function Home() {
-  const { siteSettings, pages, pageSections, getImageUrl } = usePocketBase();
+  const { siteSettings, pages, pageSections, heroSlides, getImageUrl } = usePocketBase();
   const whoWeAreSection = pageSections['home']?.['who-we-are'];
   const page = pages['home'];
+
+  // Hero carousel: slides managed in the CMS ("Home Hero Slides"); falls back to the home page banner.
+  const heroCarouselSlides: HeroCarouselSlide[] = heroSlides.length
+    ? heroSlides.map(s => ({
+        key: s.id,
+        imageUrl: getImageUrl(s, 'image', 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1920&q=80'),
+        subtitle: s.subtitle,
+        heading: s.heading,
+        highlight: s.highlight,
+        description: s.description,
+        buttonText: s.button_text,
+        buttonLink: s.button_link,
+      }))
+    : [{
+        key: 'home-banner',
+        imageUrl: getImageUrl(page, 'hero_image', 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1920&q=80'),
+        subtitle: page?.hero_subtitle || 'JOIN US THIS WEEKEND',
+        heading: page?.hero_heading || 'Sundays @',
+        highlight: '8:00 / 9:45 / 11:30',
+        description: page?.hero_description || 'Experience a community where lives are transformed. Making Disciples. Multiplying Churches.',
+      }];
 
   // Form State
   const [formData, setFormData] = useState({
@@ -403,72 +425,11 @@ export default function Home() {
   return (
     <div className="">
     <div className="relative pt-4 sm:pt-6 px-4 sm:px-6 lg:px-8 pb-0">
-      {/* Hero Section - Floating Card Style */}
-      <section className="relative min-h-[580px] md:min-h-[640px] lg:min-h-[720px] h-[85vh] sm:h-[90vh] w-full rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden flex items-end pt-24 pb-12 sm:pb-20 md:pb-24 lg:pb-28">
-        {/* Background Image & Dark Overlays */}
-        <div className="absolute inset-0 z-0 scale-105 animate-slow-zoom">
-          <img 
-            src={getImageUrl(page, 'hero_image', 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1920&q=80')} 
-            alt={page?.title || "Kingdom Seekers Fellowship Worship"} 
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
-          {/* Subtle Dark Overlay */}
-          <div className="absolute inset-0 bg-black/40 z-10" />
-          {/* Bottom-up gradient for content readability */}
-          <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-20" />
-        </div>
-
-        {/* Hero Content */}
-        <div className="container mx-auto px-6 sm:px-12 md:px-16 lg:px-24 relative z-30">
-          <div className="max-w-5xl text-ksf-white">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <span className="font-accent font-black text-bold-red text-[10px] sm:text-xs tracking-[6px] uppercase mb-4 sm:mb-6 block">
-                {page?.hero_subtitle || 'JOIN US THIS WEEKEND'}
-              </span>
-
-              <h1 className="font-headlines font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl leading-[0.85] mb-6 tracking-tighter">
-                {page?.hero_heading || 'Sundays @'}
-              </h1>
-              
-              <div className="flex flex-wrap items-center gap-4 sm:gap-6 md:gap-8 font-headlines font-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl mb-8 sm:mb-12 tracking-tighter">
-                <span className="hover:text-bold-red transition-colors cursor-default">8:00</span>
-                <span className="text-ksf-white/20 font-thin select-none">/</span>
-                <span className="hover:text-bold-red transition-colors cursor-default">9:45</span>
-                <span className="text-ksf-white/20 font-thin select-none">/</span>
-                <span className="hover:text-bold-red transition-colors cursor-default">11:30</span>
-              </div>
-
-              <p className="font-body text-sm sm:text-base md:text-lg lg:text-xl mb-10 sm:mb-14 opacity-80 font-medium tracking-tight max-w-2xl leading-relaxed">
-                {page?.hero_description || 'Experience a community where lives are transformed. Making Disciples. Multiplying Churches.'}
-              </p>
-              
-              <div className="flex flex-wrap items-center gap-6 sm:gap-12">
-                <a 
-                  href={siteSettings?.youtube_url || "https://www.youtube.com/@KsfKitale/streams"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-ksf-white text-ksf-dark-text px-10 sm:px-14 py-4 sm:py-5 rounded-full font-accent font-black tracking-[3px] text-xs sm:text-sm hover:bg-bold-red hover:text-ksf-white transition-all shadow-[0_20px_50px_rgba(0,0,0,0.3)] uppercase active:scale-95 inline-flex items-center justify-center text-center min-h-[48px]"
-                >
-                  Watch Us Live
-                </a>
-                
-                <button 
-                  onClick={() => setIsEventsModalOpen(true)}
-                  className="bg-ksf-white/10 backdrop-blur-md border border-ksf-white/20 text-ksf-white px-8 sm:px-12 py-4 sm:py-5 rounded-full font-accent font-black text-xs sm:text-sm tracking-[3px] uppercase flex items-center gap-4 group hover:bg-bold-red hover:text-ksf-white transition-all active:scale-95"
-                >
-                  Upcoming Events 
-                  <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+      <HeroCarousel
+        slides={heroCarouselSlides}
+        liveUrl={siteSettings?.youtube_url || "https://www.youtube.com/@KsfKitale/streams"}
+        onOpenEvents={() => setIsEventsModalOpen(true)}
+      />
     </div>
 
 

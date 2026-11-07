@@ -34,6 +34,13 @@
   --radius-ksf-md: 0.5rem;
   --radius-ksf-lg: 0.75rem;
   --radius-ksf-full: 9999px;
+
+  /* Hero carousel progress bar (duration is set inline from the slide interval) */
+  --animate-hero-progress: hero-progress 6.5s linear forwards;
+  @keyframes hero-progress {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
 }
 
 @layer base {
