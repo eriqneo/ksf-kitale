@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import PocketBase from 'pocketbase';
 
-const PB_URL = (import.meta as any).env?.VITE_PB_URL || 'https://ksfkitale.pockethost.io';
+export const PB_URL = (import.meta as any).env?.VITE_PB_URL || 'https://ksfkitale.pockethost.io';
 export const pb = new PocketBase(PB_URL);
 
 // --- STATIC FALLBACK DATA ---
@@ -150,7 +150,21 @@ const DEFAULT_FOOTER = {
   copyright: "© 2026 Kingdom Seekers Fellowship Kitale. All rights reserved."
 };
 
+export interface HeroSlide {
+  id: string;
+  collectionId: string;
+  collectionName: string;
+  image: string;
+  subtitle?: string;
+  heading: string;
+  highlight?: string;
+  description?: string;
+  button_text?: string;
+  button_link?: string;
+}
+
 interface PocketBaseContextType {
+  heroSlides: HeroSlide[];
   siteSettings: typeof DEFAULT_SITE_SETTINGS;
   pages: Record<string, any>;
   pageSections: Record<string, Record<string, any>>;
@@ -166,6 +180,7 @@ export const PocketBaseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [pages, setPages] = useState<Record<string, any>>(DEFAULT_PAGES);
   const [pageSections, setPageSections] = useState<Record<string, Record<string, any>>>({});
   const [footerData, setFooterData] = useState<any>(DEFAULT_FOOTER);
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
   useEffect(() => {
@@ -210,6 +225,18 @@ export const PocketBaseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         });
         setPageSections(sectionsMap);
 
+        // Home hero carousel slides (optional: the hero falls back to the 'home' page banner)
+        try {
+          const slidesRes = await pb.collection('hero_slides').getFullList<HeroSlide>({
+            filter: 'active = true',
+            sort: 'sort_order',
+            requestKey: null
+          });
+          setHeroSlides(slidesRes);
+        } catch (slidesErr) {
+          console.error("Failed to load hero slides, using the home page banner:", slidesErr);
+        }
+
         // Fetch footer configurations (single record)
         try {
           const footerRes = await pb.collection('ksf_footer').getFullList({
@@ -248,7 +275,7 @@ export const PocketBaseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   return (
-    <PocketBaseContext.Provider value={{ siteSettings, pages, pageSections, footerData, isLoadingSettings, getImageUrl }}>
+    <PocketBaseContext.Provider value={{ heroSlides, siteSettings, pages, pageSections, footerData, isLoadingSettings, getImageUrl }}>
       {children}
     </PocketBaseContext.Provider>
   );

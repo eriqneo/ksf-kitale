@@ -23,6 +23,9 @@ import BackToTop from './components/BackToTop';
 import { AnimatePresence } from 'motion/react';
 import { PocketBaseProvider, usePocketBase } from './context/PocketBaseContext';
 
+// The CMS is only downloaded when someone opens /cms-admin.
+const CmsApp = React.lazy(() => import('./cms/CmsApp'));
+
 function MainAppContent() {
   const { isLoadingSettings } = usePocketBase();
   const [isLoadingTimer, setIsLoadingTimer] = React.useState(true);
@@ -33,6 +36,16 @@ function MainAppContent() {
     const timer = setTimeout(() => setIsLoadingTimer(false), 1500);
     return () => clearTimeout(timer);
   }, []);
+
+  if (location.pathname === '/cms-admin' || location.pathname.startsWith('/cms-admin/')) {
+    return (
+      <React.Suspense fallback={<div className="min-h-screen bg-slate-100" />}>
+        <Routes>
+          <Route path="/cms-admin/*" element={<CmsApp />} />
+        </Routes>
+      </React.Suspense>
+    );
+  }
 
   const showPreloader = isLoadingTimer || isLoadingSettings;
   const isAnalyticsPage = location.pathname === '/church-analytics';
